@@ -1,0 +1,3047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SecureScan - Network Security Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #070b14 !important;
+            color: #e5e7eb;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            position: fixed !important;
+            left: 0;
+            top: 0;
+            width: 260px !important;
+            height: 100vh !important;
+            background: #0b111d !important;
+            border-right: 1px solid #1e293b;
+            padding: 24px 16px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 10px 28px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 25px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #111827;
+            border: 1px solid #263449;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-text strong {
+            color: #f8fafc;
+            font-size: 15px;
+            letter-spacing: 1.5px;
+        }
+
+        .brand-text span {
+            color: #64748b;
+            font-size: 10px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        .menu-title {
+            color: #475569;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            padding: 0 12px 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-link {
+            width: 100%;
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 0 13px;
+            color: #94a3b8;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: #111827;
+            color: #e2e8f0;
+        }
+
+        .nav-link.active {
+            background: #111c2e;
+            color: #38bdf8;
+            border-color: #1d354d;
+        }
+
+        .nav-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #1e293b;
+        }
+
+        .user-info {
+            padding: 10px 12px 14px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .user-info strong {
+            display: block;
+            color: #cbd5e1;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            height: 42px;
+            background: #111827;
+            border: 1px solid #263449;
+            color: #94a3b8;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #1a1115;
+            border-color: #7f1d1d;
+            color: #f87171;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main-content {
+            margin-left: 260px !important;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+            padding: 30px 38px 50px;
+            background:
+                radial-gradient(
+                    circle at top right,
+                    rgba(30, 64, 175, 0.08),
+                    transparent 35%
+                ),
+                #070b14;
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .page-title p {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4ade80;
+            font-size: 12px;
+            font-weight: 600;
+            padding-top: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(34,197,94,.6);
+        }
+
+        /* =========================
+           OVERVIEW
+        ========================= */
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .overview-card {
+            background: #0d1421;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 105px;
+        }
+
+        .overview-label {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .overview-value {
+            margin-top: 12px;
+            color: #e2e8f0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .overview-sub {
+            color: #475569;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        /* =========================
+           CARD
+        ========================= */
+
+        .card {
+            background: #0d1421;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 21px 24px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .card-header .label {
+            color: #38bdf8;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            margin-bottom: 9px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 19px;
+            font-weight: 600;
+        }
+
+        .card-header p {
+            margin: 7px 0 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* =========================
+           SCAN FORM
+        ========================= */
+
+        .scan-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            align-items: end;
+        }
+
+        .scan-type-selector {
+            width: 155px;
+            flex-shrink: 0;
+        }
+
+        .scan-type-selector label {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 7px;
+        }
+
+        .scan-type-selector select {
+            width: 100%;
+            height: 48px;
+            background: #080d17;
+            color: #e2e8f0;
+            border: 1px solid #263449;
+            border-radius: 7px;
+            padding: 0 12px;
+            outline: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .scan-type-selector select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,.12);
+        }
+
+        .scan-input {
+            flex: 1;
+            height: 48px;
+            background: #080d17 !important;
+            color: #e2e8f0 !important;
+            border: 1px solid #263449 !important;
+            border-radius: 7px !important;
+            padding: 0 16px !important;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .scan-input::placeholder {
+            color: #475569;
+        }
+
+        .scan-input:focus {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 2px rgba(37,99,235,.12);
+        }
+
+        .scan-button {
+            height: 48px;
+            min-width: 135px;
+            padding: 0 20px;
+            border: 0;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .scan-button:hover {
+            background: #1d4ed8;
+        }
+
+        .input-help {
+            margin: 10px 0 0;
+            color: #475569;
+            font-size: 11px;
+        }
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        #status {
+            margin-bottom: 18px;
+        }
+
+        .status-box {
+            padding: 13px 16px;
+            border-radius: 7px;
+            background: #0c1824;
+            border: 1px solid #1e3a5f;
+            color: #7dd3fc;
+            font-size: 12px;
+        }
+
+        .error-box {
+            padding: 13px 16px;
+            border-radius: 7px;
+            background: #1c1014;
+            border: 1px solid #5f2028;
+            color: #fca5a5;
+            font-size: 12px;
+        }
+
+        /* =========================
+           RESULTS
+        ========================= */
+
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .summary-item {
+            background: #080d17;
+            border: 1px solid #182335;
+            border-radius: 7px;
+            padding: 15px;
+        }
+
+        .summary-item span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+        }
+
+        .summary-item strong {
+            display: block;
+            margin-top: 7px;
+            color: #e2e8f0;
+            font-size: 16px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            padding: 18px 24px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .action-btn {
+            height: 38px;
+            padding: 0 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            background: #172033;
+            color: #93c5fd;
+            border: 1px solid #263b5a;
+        }
+
+        .email-btn {
+            background: #102218;
+            color: #86efac;
+            border: 1px solid #214b31;
+        }
+
+        .action-btn:hover {
+            opacity: .85;
+        }
+
+        .section-title {
+            padding: 19px 24px 12px;
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 0 24px 22px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .results-table th {
+            text-align: left;
+            color: #64748b;
+            background: #080d17;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            padding: 12px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .results-table td {
+            color: #94a3b8;
+            font-size: 12px;
+            padding: 13px 12px;
+            border-bottom: 1px solid #151f2e;
+        }
+
+        .results-table tr:hover td {
+            background: #0f1725;
+        }
+
+        .port-number {
+            color: #e2e8f0 !important;
+            font-weight: 600;
+        }
+
+        .protocol-badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 20px;
+            background: #111c2e;
+            color: #7dd3fc;
+            border: 1px solid #1d354d;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .open-badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 20px;
+            background: #102718;
+            color: #4ade80;
+            border: 1px solid #1e5130;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .severity {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #25171a;
+            color: #fca5a5;
+        }
+
+        .cve-card {
+            margin: 0 24px 22px;
+            background: #080d17;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cve-description {
+            max-width: 450px;
+            line-height: 1.5;
+        }
+
+        .recommendations {
+            padding: 0 24px 24px;
+        }
+
+        .recommendation {
+            background: #091810;
+            border: 1px solid #173c25;
+            border-radius: 7px;
+            padding: 13px 15px;
+            margin-bottom: 8px;
+            color: #a7f3d0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           PCAP
+        ========================= */
+
+        .pcap-upload {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            flex: 1;
+            min-width: 250px;
+            height: 44px;
+            padding: 10px;
+            background: #080d17;
+            color: #94a3b8;
+            border: 1px solid #263449;
+            border-radius: 7px;
+            font-size: 12px;
+        }
+
+        .pcap-button {
+            height: 44px;
+        }
+
+        .pcap-info {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: #080d17;
+            border: 1px solid #182335;
+            border-radius: 7px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .pcap-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .pcap-stat {
+            background: #080d17;
+            border: 1px solid #182335;
+            border-radius: 7px;
+            padding: 15px;
+        }
+
+        .pcap-stat span {
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .pcap-stat strong {
+            display: block;
+            color: #e2e8f0;
+            font-size: 18px;
+            margin-top: 6px;
+        }
+
+        .ip-list {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .ip-tag {
+            background: #111827;
+            border: 1px solid #263449;
+            border-radius: 5px;
+            padding: 6px 8px;
+            color: #93c5fd;
+            font-size: 10px;
+        }
+
+        /* =========================
+           SETTINGS
+        ========================= */
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #182335;
+        }
+
+        .settings-row:last-child {
+            border-bottom: 0;
+        }
+
+        .settings-row strong {
+            color: #cbd5e1;
+            font-size: 12px;
+        }
+
+        .enabled {
+            color: #4ade80 !important;
+        }
+
+        .footer {
+            padding-top: 20px;
+            color: #334155;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+            .result-summary {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .sidebar {
+                width: 220px !important;
+            }
+
+            .main-content {
+                margin-left: 220px !important;
+                width: calc(100% - 220px);
+                padding: 25px;
+            }
+
+            .overview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .result-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                position: relative !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            .app-layout {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100%;
+                padding: 20px;
+            }
+
+            .top-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .overview-grid,
+            .result-summary,
+            .pcap-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scan-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .scan-type-selector {
+                width: 100%;
+            }
+
+            .scan-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">🛡️</div>
+
+            <div class="brand-text">
+                <strong>SECURESCAN</strong>
+                <span>PORT SECURITY TOOL</span>
+            </div>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="nav-menu">
+
+            <a href="#top" class="nav-link active">
+                <span class="nav-icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="#scanSection" class="nav-link">
+                <span class="nav-icon">⌕</span>
+                <span>Port Scanner</span>
+            </a>
+
+            <a href="/history" class="nav-link">
+                <span class="nav-icon">◷</span>
+                <span>Scan History</span>
+            </a>
+
+            <a href="#pcapSection" class="nav-link">
+                <span class="nav-icon">⌁</span>
+                <span>PCAP Analyzer</span>
+            </a>
+
+            <a href="#settingsSection" class="nav-link">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-info">
+                Logged in as
+                <strong id="sidebarUsername">Loading...</strong>
+            </div>
+
+            <button
+                id="logoutButton"
+                type="button"
+                class="logout-btn"
+                onclick="logoutUser()">
+                Logout
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content" id="top">
+
+        <header class="top-header">
+
+            <div class="page-title">
+                <h1>Network Security Dashboard</h1>
+
+                <p>
+                    Monitor and analyze your network security
+                </p>
+            </div>
+
+            <div class="system-status">
+                <span class="status-dot"></span>
+                System Online
+            </div>
+
+        </header>
+
+
+        <!-- OVERVIEW -->
+
+        <section class="overview-grid">
+
+            <div class="overview-card">
+                <div class="overview-label">
+                    Scanner Engine
+                </div>
+
+                <div class="overview-value">
+                    Nmap
+                </div>
+
+                <div class="overview-sub">
+                    TCP / UDP network scanning
+                </div>
+            </div>
+
+
+            <div class="overview-card">
+                <div class="overview-label">
+                    Vulnerability
+                </div>
+
+                <div class="overview-value">
+                    CVE Lookup
+                </div>
+
+                <div class="overview-sub">
+                    NVD vulnerability database
+                </div>
+            </div>
+
+
+            <div class="overview-card">
+                <div class="overview-label">
+                    Reporting
+                </div>
+
+                <div class="overview-value">
+                    PDF Reports
+                </div>
+
+                <div class="overview-sub">
+                    Security assessment reports
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- SCANNER -->
+
+        <section class="card" id="scanSection">
+
+            <div class="card-header">
+
+                <div class="label">
+                    NETWORK ANALYSIS
+                </div>
+
+                <h2>
+                    Start a Security Scan
+                </h2>
+
+                <p>
+                    Select TCP or UDP scan and enter an IP address
+                    or domain to analyze open ports and services.
+                </p>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <form id="scanForm">
+
+                    <div class="scan-row">
+
+                        <div class="scan-type-selector">
+
+                            <label for="scanType">
+                                Scan Type
+                            </label>
+
+                            <select id="scanType">
+
+                                <option value="tcp">
+                                    TCP Scan
+                                </option>
+
+                                <option value="udp">
+                                    UDP Scan
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            id="target"
+                            class="scan-input"
+                            placeholder="Enter IP address or domain"
+                            autocomplete="off"
+                            required>
+
+
+                        <button
+                            type="submit"
+                            class="scan-button">
+                            Start Scan
+                        </button>
+
+                    </div>
+
+
+                    <p class="input-help">
+                        For multiple targets, separate them with commas.
+                        Example: scanme.nmap.org, example.com
+                    </p>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATUS -->
+
+        <div id="status"></div>
+
+
+        <!-- RESULTS -->
+
+        <div id="results"></div>
+
+
+        <!-- PCAP ANALYZER -->
+
+        <section class="card" id="pcapSection">
+
+            <div class="card-header">
+
+                <div class="label">
+                    NETWORK FORENSICS
+                </div>
+
+                <h2>
+                    Wireshark PCAP Analysis
+                </h2>
+
+                <p>
+                    Upload a PCAP, PCAPNG or CAP file
+                    for basic network packet analysis.
+                </p>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <form id="pcapForm">
+
+                    <div class="pcap-upload">
+
+                        <input
+                            type="file"
+                            id="pcapFile"
+                            class="file-input"
+                            accept=".pcap,.pcapng,.cap"
+                            required>
+
+                        <button
+                            type="submit"
+                            class="scan-button pcap-button">
+                            🔎 Analyze PCAP
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                <div id="pcapStatus"></div>
+
+                <div id="pcapResults"></div>
+
+                <div class="pcap-info">
+                    Supported formats:
+                    <strong>PCAP</strong>,
+                    <strong>PCAPNG</strong>,
+                    <strong>CAP</strong>.
+                    Upload only authorized network captures.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SETTINGS -->
+
+        <section class="card" id="settingsSection">
+
+            <div class="card-header">
+
+                <div class="label">
+                    SYSTEM CONFIGURATION
+                </div>
+
+                <h2>
+                    Settings
+                </h2>
+
+                <p>
+                    Current SecureScan system configuration.
+                </p>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="settings-row">
+                    <div>
+                        <strong>TCP Port Scanner</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+
+                <div class="settings-row">
+                    <div>
+                        <strong>UDP Port Scanner</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+
+                <div class="settings-row">
+                    <div>
+                        <strong>CVE Lookup</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+
+                <div class="settings-row">
+                    <div>
+                        <strong>PDF Report Generator</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+
+                <div class="settings-row">
+                    <div>
+                        <strong>PCAP Analyzer</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+
+                <div class="settings-row">
+                    <div>
+                        <strong>Scan History</strong>
+                    </div>
+
+                    <span class="enabled">
+                        Enabled
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div class="footer">
+            SecureScan • Network Security Assessment Tool
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   CURRENT USER
+===================================================== */
+
+async function loadCurrentUser() {
+
+    try {
+
+        const response = await fetch("/me");
+
+        const data = await response.json();
+
+        if (!data.authenticated) {
+
+            window.location.href = "/login-page";
+
+            return;
+        }
+
+        const username =
+            data.username || "User";
+
+        const sidebarUser =
+            document.getElementById("sidebarUsername");
+
+        if (sidebarUser) {
+
+            sidebarUser.innerText = username;
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        window.location.href = "/login-page";
+    }
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logoutUser() {
+
+    try {
+
+        const response =
+            await fetch("/logout", {
+                method: "POST"
+            });
+
+        if (response.ok) {
+
+            window.location.href =
+                "/login-page";
+
+        } else {
+
+            alert("Logout failed.");
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Logout failed.");
+    }
+}
+
+
+/* =====================================================
+   EMAIL REPORT
+===================================================== */
+
+async function emailReport(scanId) {
+
+    const receiverEmail =
+        prompt("Enter receiver email address:");
+
+    if (!receiverEmail) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/email-report", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    scan_id: scanId,
+                    email: receiverEmail
+                })
+            });
+
+
+        const data =
+            await response.json();
+
+
+        if (response.ok) {
+
+            alert(
+                data.message ||
+                "Report sent successfully!"
+            );
+
+        } else {
+
+            alert(
+                data.error ||
+                "Failed to send report."
+            );
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Unable to send email report."
+        );
+    }
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHtml(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =====================================================
+   SCAN FORM
+===================================================== */
+
+document
+    .getElementById("scanForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const targetInput =
+                document.getElementById("target");
+
+            const target =
+                targetInput.value.trim();
+
+
+            const scanType =
+                document.getElementById("scanType").value;
+
+
+            if (!target) {
+                return;
+            }
+
+
+            if (
+                scanType !== "tcp" &&
+                scanType !== "udp"
+            ) {
+
+                alert("Please select TCP or UDP scan.");
+
+                return;
+            }
+
+
+            const status =
+                document.getElementById("status");
+
+            const results =
+                document.getElementById("results");
+
+
+            const scanName =
+                scanType === "udp"
+                    ? "UDP"
+                    : "TCP";
+
+
+            status.innerHTML = `
+
+                <div class="status-box">
+
+                    ⏳ ${scanName} scan started...
+
+                    Please wait.
+
+                </div>
+
+            `;
+
+
+            results.innerHTML = "";
+
+
+            try {
+
+                const response =
+                    await fetch("/scan", {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            target: target,
+
+                            scan_type: scanType
+
+                        })
+                    });
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Scan failed."
+                    );
+                }
+
+
+                status.innerHTML = `
+
+                    <div class="status-box">
+
+                        ✓ ${scanName} scan completed successfully!
+
+                    </div>
+
+                `;
+
+
+                if (
+                    Array.isArray(data.targets) &&
+                    data.targets.length > 1
+                ) {
+
+                    showMultipleResults(data);
+
+                } else {
+
+                    showSingleResults(data);
+                }
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                status.innerHTML = `
+
+                    <div class="error-box">
+
+                        ✕ ${escapeHtml(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   SINGLE TARGET RESULTS
+===================================================== */
+
+function showSingleResults(data) {
+
+    const results =
+        document.getElementById("results");
+
+
+    const scanId =
+        data.scan_id || "-";
+
+
+    const target =
+        data.target || "-";
+
+
+    const scanType =
+        String(
+            data.scan_type ||
+            document.getElementById("scanType").value ||
+            "tcp"
+        ).toUpperCase();
+
+
+    const duration =
+        data.scan_duration !== undefined
+            ? `${data.scan_duration} seconds`
+            : "-";
+
+
+    const scanResults =
+        data.results || [];
+
+
+    let html = `
+
+        <section
+            class="card"
+            id="reportsSection">
+
+            <div class="card-header">
+
+                <div class="label">
+                    SECURITY ASSESSMENT
+                </div>
+
+                <h2>
+                    ${scanType} Scan Results
+                </h2>
+
+                <p>
+                    Detailed ${scanType} security analysis
+                    for the selected target.
+                </p>
+
+            </div>
+
+
+            <div class="result-summary">
+
+                <div class="summary-item">
+
+                    <span>Target</span>
+
+                    <strong>
+                        ${escapeHtml(target)}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Scan Type</span>
+
+                    <strong>
+                        ${escapeHtml(scanType)}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Scan ID</span>
+
+                    <strong>
+                        ${escapeHtml(scanId)}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Total Ports</span>
+
+                    <strong>
+                        ${scanResults.length}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Duration</span>
+
+                    <strong>
+                        ${escapeHtml(duration)}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="action-row">
+
+                <button
+                    class="action-btn download-btn"
+                    onclick="window.open(
+                        '${escapeHtml(data.report || "#")}',
+                        '_blank'
+                    )">
+
+                    ↓ Download PDF
+
+                </button>
+
+
+                <button
+                    class="action-btn email-btn"
+                    onclick="emailReport(${Number(scanId) || 0})">
+
+                    ✉ Email Report
+
+                </button>
+
+            </div>
+
+
+            <div class="section-title">
+                Open Ports
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="results-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Port</th>
+
+                            <th>Protocol</th>
+
+                            <th>Service</th>
+
+                            <th>Version</th>
+
+                            <th>State</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+    `;
+
+
+    if (scanResults.length === 0) {
+
+        html += `
+
+            <tr>
+
+                <td colspan="5">
+
+                    No open ${escapeHtml(scanType)}
+                    ports detected.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    } else {
+
+        scanResults.forEach(function(item) {
+
+            const protocol =
+                item.protocol ||
+                scanType;
+
+
+            html += `
+
+                <tr>
+
+                    <td class="port-number">
+
+                        ${escapeHtml(item.port)}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="protocol-badge">
+
+                            ${escapeHtml(protocol)}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            item.service ||
+                            "Unknown"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            item.version ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="open-badge">
+
+                            OPEN
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+        });
+    }
+
+
+    html += `
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+    `;
+
+
+    /* =========================
+       CVE SECTION
+    ========================== */
+
+    const cves =
+        scanResults.flatMap(function(item) {
+
+            return (item.cves || []).map(
+                function(cve) {
+
+                    return {
+
+                        ...cve,
+
+                        port: item.port,
+
+                        service: item.service,
+
+                        version: item.version
+
+                    };
+                }
+            );
+
+        });
+
+
+    html += `
+
+        <div
+            id="vulnerabilitiesSection"
+            class="section-title">
+
+            CVE Vulnerabilities
+
+        </div>
+
+    `;
+
+
+    if (cves.length === 0) {
+
+        html += `
+
+            <div class="recommendations">
+
+                <div class="recommendation">
+
+                    ✓ No CVE vulnerabilities
+                    were returned for the
+                    detected services.
+
+                </div>
+
+            </div>
+
+        `;
+
+    } else {
+
+        html += `
+
+            <div class="cve-card">
+
+                <div
+                    class="table-wrapper"
+                    style="padding-bottom:0;">
+
+                    <table class="results-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>CVE ID</th>
+
+                                <th>Port</th>
+
+                                <th>Service</th>
+
+                                <th>Severity</th>
+
+                                <th>CVSS</th>
+
+                                <th>Description</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+        `;
+
+
+        cves.forEach(function(cve) {
+
+            html += `
+
+                <tr>
+
+                    <td class="port-number">
+
+                        ${escapeHtml(
+                            cve.id ||
+                            cve.cve_id ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.port
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.service ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="severity">
+
+                            ${escapeHtml(
+                                cve.severity ||
+                                "UNKNOWN"
+                            )}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.cvss_score ||
+                            cve.cvss ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td class="cve-description">
+
+                        ${escapeHtml(
+                            cve.description ||
+                            "No description available."
+                        )}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        html += `
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        `;
+    }
+
+
+    /* =========================
+       RECOMMENDATIONS
+    ========================== */
+
+    html += `
+
+        <div class="section-title">
+
+            Security Recommendations
+
+        </div>
+
+        <div class="recommendations">
+
+    `;
+
+
+    const recommendations =
+        data.recommendations || [];
+
+
+    if (recommendations.length === 0) {
+
+        html += `
+
+            <div class="recommendation">
+
+                No additional recommendations.
+
+            </div>
+
+        `;
+
+    } else {
+
+        recommendations.forEach(
+            function(recommendation) {
+
+                html += `
+
+                    <div class="recommendation">
+
+                        ✓ ${escapeHtml(
+                            recommendation
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+        );
+    }
+
+
+    html += `
+
+        </div>
+
+        </section>
+
+    `;
+
+
+    results.innerHTML = html;
+
+
+    results.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start"
+
+    });
+}
+
+
+/* =====================================================
+   MULTIPLE TARGET RESULTS
+===================================================== */
+
+function showMultipleResults(data) {
+
+    const results =
+        document.getElementById("results");
+
+
+    const targets =
+        data.targets || [];
+
+
+    const allResults =
+        data.results || [];
+
+
+    const scanId =
+        data.scan_id || "-";
+
+
+    const scanType =
+        String(
+            data.scan_type ||
+            document.getElementById("scanType").value ||
+            "tcp"
+        ).toUpperCase();
+
+
+    const duration =
+        data.scan_duration !== undefined
+            ? `${data.scan_duration} seconds`
+            : "-";
+
+
+    let totalPorts = 0;
+
+
+    allResults.forEach(function(targetResult) {
+
+        if (Array.isArray(targetResult.results)) {
+
+            totalPorts +=
+                targetResult.results.length;
+
+        } else if (
+            Array.isArray(targetResult.ports)
+        ) {
+
+            totalPorts +=
+                targetResult.ports.length;
+        }
+
+    });
+
+
+    let html = `
+
+        <section
+            class="card"
+            id="reportsSection">
+
+            <div class="card-header">
+
+                <div class="label">
+                    MULTI TARGET ANALYSIS
+                </div>
+
+                <h2>
+                    ${scanType} Scan Results
+                </h2>
+
+                <p>
+                    ${scanType} security analysis
+                    for multiple targets.
+                </p>
+
+            </div>
+
+
+            <div class="result-summary">
+
+                <div class="summary-item">
+
+                    <span>Total Targets</span>
+
+                    <strong>
+                        ${targets.length}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Total Ports</span>
+
+                    <strong>
+                        ${totalPorts}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Scan Type</span>
+
+                    <strong>
+                        ${escapeHtml(scanType)}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Scan ID</span>
+
+                    <strong>
+                        ${escapeHtml(scanId)}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-item">
+
+                    <span>Duration</span>
+
+                    <strong>
+                        ${escapeHtml(duration)}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="action-row">
+
+                <button
+                    class="action-btn download-btn"
+                    onclick="window.open(
+                        '${escapeHtml(data.report || "#")}',
+                        '_blank'
+                    )">
+
+                    ↓ Download PDF
+
+                </button>
+
+
+                <button
+                    class="action-btn email-btn"
+                    onclick="emailReport(${Number(scanId) || 0})">
+
+                    ✉ Email Report
+
+                </button>
+
+            </div>
+
+
+            <div class="section-title">
+                Target List
+            </div>
+
+
+            <div class="recommendations">
+
+    `;
+
+
+    targets.forEach(function(target) {
+
+        html += `
+
+            <div class="recommendation">
+
+                ● ${escapeHtml(target)}
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += `
+
+            </div>
+
+
+            <div class="section-title">
+
+                ${scanType} Port Scan Details
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="results-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Target</th>
+
+                            <th>Port</th>
+
+                            <th>Protocol</th>
+
+                            <th>Service</th>
+
+                            <th>Version</th>
+
+                            <th>State</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+    `;
+
+
+    let hasPorts = false;
+
+
+    allResults.forEach(function(targetResult) {
+
+        const targetName =
+            targetResult.target ||
+            targetResult.host ||
+            "-";
+
+
+        const ports =
+            targetResult.results ||
+            targetResult.ports ||
+            [];
+
+
+        ports.forEach(function(item) {
+
+            hasPorts = true;
+
+
+            const protocol =
+                item.protocol ||
+                scanType;
+
+
+            html += `
+
+                <tr>
+
+                    <td>
+
+                        ${escapeHtml(targetName)}
+
+                    </td>
+
+
+                    <td class="port-number">
+
+                        ${escapeHtml(item.port)}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="protocol-badge">
+
+                            ${escapeHtml(protocol)}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            item.service ||
+                            "Unknown"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            item.version ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="open-badge">
+
+                            OPEN
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    });
+
+
+    if (!hasPorts) {
+
+        html += `
+
+            <tr>
+
+                <td colspan="6">
+
+                    No open ${escapeHtml(scanType)}
+                    ports detected.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+
+    html += `
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div
+                id="vulnerabilitiesSection"
+                class="section-title">
+
+                CVE Vulnerabilities
+
+            </div>
+
+    `;
+
+
+    let allCves = [];
+
+
+    allResults.forEach(function(targetResult) {
+
+        const targetName =
+            targetResult.target ||
+            targetResult.host ||
+            "-";
+
+
+        const ports =
+            targetResult.results ||
+            targetResult.ports ||
+            [];
+
+
+        ports.forEach(function(item) {
+
+            (item.cves || []).forEach(
+                function(cve) {
+
+                    allCves.push({
+
+                        ...cve,
+
+                        target: targetName,
+
+                        port: item.port,
+
+                        service: item.service,
+
+                        version: item.version
+
+                    });
+
+                }
+            );
+
+        });
+
+    });
+
+
+    if (allCves.length === 0) {
+
+        html += `
+
+            <div class="recommendations">
+
+                <div class="recommendation">
+
+                    ✓ No CVE vulnerabilities
+                    were returned.
+
+                </div>
+
+            </div>
+
+        `;
+
+    } else {
+
+        html += `
+
+            <div class="cve-card">
+
+                <div
+                    class="table-wrapper"
+                    style="padding-bottom:0;">
+
+                    <table class="results-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Target</th>
+
+                                <th>CVE</th>
+
+                                <th>Port</th>
+
+                                <th>Service</th>
+
+                                <th>Severity</th>
+
+                                <th>CVSS</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+        `;
+
+
+        allCves.forEach(function(cve) {
+
+            html += `
+
+                <tr>
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.target
+                        )}
+
+                    </td>
+
+
+                    <td class="port-number">
+
+                        ${escapeHtml(
+                            cve.id ||
+                            cve.cve_id ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.port
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.service ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <span class="severity">
+
+                            ${escapeHtml(
+                                cve.severity ||
+                                "UNKNOWN"
+                            )}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHtml(
+                            cve.cvss_score ||
+                            cve.cvss ||
+                            "-"
+                        )}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        html += `
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* =========================
+       RECOMMENDATIONS
+    ========================== */
+
+    html += `
+
+        <div class="section-title">
+
+            Security Recommendations
+
+        </div>
+
+        <div class="recommendations">
+
+    `;
+
+
+    const recommendations =
+        data.recommendations || [];
+
+
+    if (recommendations.length === 0) {
+
+        html += `
+
+            <div class="recommendation">
+
+                No additional recommendations.
+
+            </div>
+
+        `;
+
+    } else {
+
+        recommendations.forEach(
+            function(recommendation) {
+
+                html += `
+
+                    <div class="recommendation">
+
+                        ✓ ${escapeHtml(
+                            recommendation
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+    }
+
+
+    html += `
+
+        </div>
+
+        </section>
+
+    `;
+
+
+    results.innerHTML = html;
+
+
+    results.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start"
+
+    });
+}
+
+
+/* =====================================================
+   PCAP ANALYZER
+===================================================== */
+
+document
+    .getElementById("pcapForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const fileInput =
+                document.getElementById(
+                    "pcapFile"
+                );
+
+
+            const file =
+                fileInput.files[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            const status =
+                document.getElementById(
+                    "pcapStatus"
+                );
+
+
+            const results =
+                document.getElementById(
+                    "pcapResults"
+                );
+
+
+            status.innerHTML = `
+
+                <div
+                    class="status-box"
+                    style="margin-top:15px;">
+
+                    ⏳ Analyzing PCAP file...
+
+                </div>
+
+            `;
+
+
+            results.innerHTML = "";
+
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "file",
+                file
+            );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/pcap/analyze",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "PCAP analysis failed."
+                    );
+                }
+
+
+                status.innerHTML = `
+
+                    <div
+                        class="status-box"
+                        style="margin-top:15px;">
+
+                        ✓ PCAP analysis completed successfully!
+
+                    </div>
+
+                `;
+
+
+                const protocols =
+                    data.protocols || {};
+
+
+                let protocolRows = "";
+
+
+                Object.entries(protocols)
+                    .forEach(
+                        function([protocol, count]) {
+
+                            protocolRows += `
+
+                                <tr>
+
+                                    <td>
+
+                                        ${escapeHtml(
+                                            protocol
+                                        )}
+
+                                    </td>
+
+                                    <td>
+
+                                        ${escapeHtml(
+                                            count
+                                        )}
+
+                                    </td>
+
+                                </tr>
+
+                            `;
+
+                        }
+                    );
+
+
+                const sourceIps =
+                    data.source_ips || [];
+
+
+                const destinationIps =
+                    data.destination_ips || [];
+
+
+                let sourceHtml = "";
+
+
+                sourceIps.forEach(
+                    function(ip) {
+
+                        sourceHtml += `
+
+                            <span class="ip-tag">
+
+                                ${escapeHtml(ip)}
+
+                            </span>
+
+                        `;
+
+                    }
+                );
+
+
+                let destinationHtml = "";
+
+
+                destinationIps.forEach(
+                    function(ip) {
+
+                        destinationHtml += `
+
+                            <span class="ip-tag">
+
+                                ${escapeHtml(ip)}
+
+                            </span>
+
+                        `;
+
+                    }
+                );
+
+
+                results.innerHTML = `
+
+                    <div class="pcap-stat-grid">
+
+                        <div class="pcap-stat">
+
+                            <span>
+                                Total Packets
+                            </span>
+
+                            <strong>
+                                ${escapeHtml(
+                                    data.total_packets || 0
+                                )}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="pcap-stat">
+
+                            <span>
+                                Protocol Types
+                            </span>
+
+                            <strong>
+                                ${Object.keys(protocols).length}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="pcap-stat">
+
+                            <span>
+                                Source IPs
+                            </span>
+
+                            <strong>
+                                ${sourceIps.length}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="section-title"
+                        style="padding-left:0;">
+
+                        Protocol Distribution
+
+                    </div>
+
+
+                    <div
+                        class="table-wrapper"
+                        style="padding:0;">
+
+                        <table class="results-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Protocol</th>
+
+                                    <th>Packets</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                ${protocolRows}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <div
+                        class="section-title"
+                        style="padding-left:0;">
+
+                        Source IP Addresses
+
+                    </div>
+
+
+                    <div class="ip-list">
+
+                        ${
+                            sourceHtml ||
+                            '<span class="ip-tag">None</span>'
+                        }
+
+                    </div>
+
+
+                    <div
+                        class="section-title"
+                        style="padding-left:0;">
+
+                        Destination IP Addresses
+
+                    </div>
+
+
+                    <div class="ip-list">
+
+                        ${
+                            destinationHtml ||
+                            '<span class="ip-tag">None</span>'
+                        }
+
+                    </div>
+
+                `;
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                status.innerHTML = `
+
+                    <div
+                        class="error-box"
+                        style="margin-top:15px;">
+
+                        ✕ ${escapeHtml(
+                            error.message
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   SIDEBAR ACTIVE MENU
+===================================================== */
+
+document
+    .querySelectorAll(".nav-link")
+    .forEach(function(link) {
+
+        link.addEventListener(
+            "click",
+            function() {
+
+                document
+                    .querySelectorAll(".nav-link")
+                    .forEach(function(item) {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    });
+
+
+                if (
+                    link
+                        .getAttribute("href")
+                        .startsWith("#")
+                ) {
+
+                    link.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    });
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+loadCurrentUser();
+
+</script>
+
+</body>
+</html>

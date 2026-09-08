@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Port Scanner - Login</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background: #f5f7fb;
+        }
+
+        .login-card {
+
+            width: 380px;
+
+            padding: 35px;
+
+            background: white;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 10px 30px
+                rgba(0, 0, 0, 0.10);
+        }
+
+        h1 {
+
+            margin: 0 0 8px;
+
+            text-align: center;
+
+            font-size: 28px;
+        }
+
+        .subtitle {
+
+            text-align: center;
+
+            color: #64748b;
+
+            margin-bottom: 30px;
+        }
+
+        label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+        }
+
+        input {
+
+            width: 100%;
+
+            padding: 13px;
+
+            margin-bottom: 18px;
+
+            border: 1px solid #cbd5e1;
+
+            border-radius: 8px;
+
+            font-size: 15px;
+        }
+
+        input:focus {
+
+            outline: none;
+
+            border-color: #2563eb;
+        }
+
+        button {
+
+            width: 100%;
+
+            padding: 13px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #2563eb;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+
+            background: #1d4ed8;
+        }
+
+        #message {
+
+            margin-top: 18px;
+
+            text-align: center;
+
+            font-size: 14px;
+
+            color: #dc2626;
+        }
+
+        .register-text {
+
+            margin-top: 22px;
+
+            text-align: center;
+
+            color: #64748b;
+        }
+
+        .register-text a {
+
+            color: #2563eb;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="login-card">
+
+        <h1>
+            Port Scanner
+        </h1>
+
+        <p class="subtitle">
+            Login to continue
+        </p>
+
+
+        <form id="loginForm">
+
+            <label for="username">
+                Username
+            </label>
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Enter username"
+                required
+            >
+
+
+            <label for="password">
+                Password
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                required
+            >
+
+
+            <button
+                type="submit"
+                id="loginButton"
+            >
+                Login
+            </button>
+
+        </form>
+
+
+        <div id="message"></div>
+
+
+        <p class="register-text">
+
+            Don't have an account?
+
+            <a href="/register-page">
+                Register
+            </a>
+
+        </p>
+
+    </div>
+
+
+<script>
+
+    document
+        .getElementById("loginForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                const username =
+                    document
+                        .getElementById("username")
+                        .value
+                        .trim();
+
+
+                const password =
+                    document
+                        .getElementById("password")
+                        .value;
+
+
+                const message =
+                    document
+                        .getElementById("message");
+
+
+                const loginButton =
+                    document
+                        .getElementById("loginButton");
+
+
+                message.innerText =
+                    "Logging in...";
+
+
+                loginButton.disabled =
+                    true;
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "/login",
+                            {
+
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        username:
+                                            username,
+                                        password:
+                                            password
+                                    })
+
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        message.innerText =
+                            data.error ||
+                            "Login failed.";
+
+                        loginButton.disabled =
+                            false;
+
+                        return;
+                    }
+
+
+                    message.style.color =
+                        "#16a34a";
+
+                    message.innerText =
+                        "Login successful!";
+
+
+                    setTimeout(
+                        function() {
+
+                            window.location.href =
+                                "/";
+
+                        },
+                        700
+                    );
+
+
+                }
+                catch (error) {
+
+                    console.error(error);
+
+                    message.innerText =
+                        "Unable to connect to server.";
+
+                    loginButton.disabled =
+                        false;
+                }
+
+            }
+        );
+
+</script>
+
+
+</body>
+
+</html>
