@@ -1,43 +1,52 @@
 import os
+import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 
 
-NMAP_PATH = r"C:\Program Files (x86)\Nmap\nmap.exe"
-
-
 def get_nmap_path():
+    """
+    Find Nmap automatically on Windows, Linux and Docker.
+    """
 
-    if os.path.isfile(NMAP_PATH):
-        return NMAP_PATH
+    # First try PATH
+    nmap_path = shutil.which("nmap")
 
-    raise FileNotFoundError(
-        f"Nmap not found at: {NMAP_PATH}"
+    if nmap_path:
+        return nmap_path
+
+    # Windows fallback
+    windows_paths = [
+        r"C:\Program Files\Nmap\nmap.exe",
+        r"C:\Program Files (x86)\Nmap\nmap.exe",
+    ]
+
+    for path in windows_paths:
+        if os.path.isfile(path):
+            return path
+
+    raise RuntimeError(
+        "Nmap is not installed or cannot be found. "
+        "Install Nmap or make sure it is available in PATH."
     )
 
 
 def scan_target(target, scan_type="tcp"):
 
-    target = target.strip()
-
-    if not target:
-        raise ValueError("Target cannot be empty")
-
     scan_type = scan_type.lower()
 
-    nmap = get_nmap_path()
-
+    nmap_path = get_nmap_path()
 
     if scan_type == "tcp":
 
         command = [
-            nmap,
+            nmap_path,
             "-sT",
+            "-sV",
             "-Pn",
             "-T3",
             "-p",
             "1-10000",
-            "-sV",
             "-oX",
             "-",
             target
@@ -46,13 +55,13 @@ def scan_target(target, scan_type="tcp"):
     elif scan_type == "udp":
 
         command = [
-            nmap,
+            nmap_path,
             "-sU",
+            "-sV",
             "-Pn",
             "-T3",
             "--top-ports",
             "100",
-            "-sV",
             "-oX",
             "-",
             target
@@ -64,7 +73,6 @@ def scan_target(target, scan_type="tcp"):
             "Scan type must be TCP or UDP"
         )
 
-
     try:
 
         result = subprocess.run(
@@ -74,23 +82,21 @@ def scan_target(target, scan_type="tcp"):
             timeout=300
         )
 
-
         if result.returncode != 0:
 
             error_message = (
                 result.stderr.strip()
-                or result.stdout.strip()
                 or "Nmap scan failed"
             )
 
-            raise RuntimeError(error_message)
-
+            raise RuntimeError(
+                error_message
+            )
 
         return parse_nmap_xml(
             result.stdout,
             scan_type.upper()
         )
-
 
     except subprocess.TimeoutExpired:
 
@@ -98,41 +104,54 @@ def scan_target(target, scan_type="tcp"):
             f"{scan_type.upper()} scan timed out after 5 minutes"
         )
 
+    except FileNotFoundError:
 
-def parse_nmap_xml(xml_output, protocol):
+        raise RuntimeError(
+            "Nmap executable was not found. "
+            "Please check the Nmap installation."
+        )
+
+
+def parse_nmap_xml(
+    xml_output,
+    protocol
+):
 
     results = []
 
     if not xml_output.strip():
         return results
 
-
     try:
 
-        root = ET.fromstring(xml_output)
-
+        root = ET.fromstring(
+            xml_output
+        )
 
         for host in root.findall("host"):
 
-            ports_element = host.find("ports")
+            ports_element = host.find(
+                "ports"
+            )
 
             if ports_element is None:
                 continue
 
+            for port in ports_element.findall(
+                "port"
+            ):
 
-            for port in ports_element.findall("port"):
-
-                state = port.find("state")
+                state = port.find(
+                    "state"
+                )
 
                 if state is None:
                     continue
-
 
                 port_state = state.get(
                     "state",
                     ""
                 )
-
 
                 if port_state not in [
                     "open",
@@ -140,14 +159,13 @@ def parse_nmap_xml(xml_output, protocol):
                 ]:
                     continue
 
-
-                service = port.find("service")
-
+                service = port.find(
+                    "service"
+                )
 
                 service_name = "unknown"
                 product = ""
                 version = ""
-
 
                 if service is not None:
 
@@ -166,28 +184,30 @@ def parse_nmap_xml(xml_output, protocol):
                         ""
                     )
 
-
                 results.append({
 
-                    "port": int(
-                        port.get("portid")
-                    ),
+                    "port":
+                        int(
+                            port.get("portid")
+                        ),
 
-                    "protocol": protocol,
+                    "protocol":
+                        protocol,
 
-                    "service": service_name,
+                    "service":
+                        service_name,
 
-                    "product": product,
+                    "product":
+                        product,
 
-                    "version": version,
+                    "version":
+                        version,
 
-                    "state": port_state
-
+                    "state":
+                        port_state
                 })
 
-
         return results
-
 
     except ET.ParseError:
 
@@ -203,28 +223,21 @@ def scan_multiple_targets(
 
     all_results = []
 
-
     for target in targets:
-
-        target = target.strip()
-
-        if not target:
-            continue
-
 
         results = scan_target(
             target,
             scan_type
         )
 
-
         all_results.append({
 
-            "target": target,
+            "target":
+                target,
 
-            "results": results
+            "results":
+                results
 
         })
-
 
     return all_results
