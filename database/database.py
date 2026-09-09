@@ -1,35 +1,17 @@
 import os
-
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-
-# =====================================================
-# LOAD ENVIRONMENT VARIABLES
-# =====================================================
-
 load_dotenv()
-
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
-
 if not SUPABASE_URL:
-    raise RuntimeError(
-        "SUPABASE_URL is not configured in .env"
-    )
-
+    raise RuntimeError("SUPABASE_URL is not configured in .env")
 
 if not SUPABASE_KEY:
-    raise RuntimeError(
-        "SUPABASE_SECRET_KEY is not configured in .env"
-    )
-
-
-# =====================================================
-# SUPABASE CLIENT
-# =====================================================
+    raise RuntimeError("SUPABASE_SECRET_KEY is not configured in .env")
 
 supabase: Client = create_client(
     SUPABASE_URL,
@@ -37,26 +19,28 @@ supabase: Client = create_client(
 )
 
 
-# =====================================================
-# CREATE TABLES
-# =====================================================
-
 def create_tables():
-    """
-    Tables are created directly in Supabase SQL Editor.
-    This function is kept for compatibility with app.py.
-    """
-
+    # Tables are already created in Supabase.
     return True
 
 
-# =====================================================
-# USER FUNCTIONS
-# =====================================================
-
+# ============================================================
+# USER REGISTRATION
+# ============================================================
 def create_user(username, password):
-
     try:
+        existing = (
+            supabase
+            .table("users")
+            .select("id")
+            .eq("username", username)
+            .limit(1)
+            .execute()
+        )
+
+        if existing.data:
+            print("Create user error: Username already exists")
+            return False
 
         response = (
             supabase
@@ -68,19 +52,19 @@ def create_user(username, password):
             .execute()
         )
 
+        print("Create user response:", response.data)
+
         return bool(response.data)
 
     except Exception as e:
-
-        print("Create user error:", e)
-
-        return False
-
+        print("Create user error:", repr(e))
+        raise
+# ============================================================
+# USER LOGIN
+# ============================================================
 
 def verify_user(username, password):
-
     try:
-
         response = (
             supabase
             .table("users")
@@ -92,7 +76,6 @@ def verify_user(username, password):
         )
 
         if response.data:
-
             user = response.data[0]
 
             return {
@@ -103,34 +86,24 @@ def verify_user(username, password):
         return None
 
     except Exception as e:
-
-        print("Verify user error:", e)
-
-        return None
+        print("Verify user error:", repr(e))
+        raise
 
 
-# =====================================================
+# ============================================================
 # SAVE SINGLE SCAN
-# =====================================================
+# ============================================================
 
 def save_scan(target, results):
-
     try:
-
         scan_type = "tcp"
 
         if results:
-
             protocol = results[0].get(
                 "protocol",
                 "TCP"
             )
-
             scan_type = protocol.lower()
-
-        # ---------------------------------------------
-        # Insert scan
-        # ---------------------------------------------
 
         scan_response = (
             supabase
@@ -145,37 +118,23 @@ def save_scan(target, results):
         )
 
         if not scan_response.data:
-
             raise RuntimeError(
                 "Unable to create scan record"
             )
 
         scan_id = scan_response.data[0]["id"]
 
-        # ---------------------------------------------
-        # Insert scan results
-        # ---------------------------------------------
-
         if results:
-
             scan_results = []
 
             for result in results:
-
                 scan_results.append({
-
                     "scan_id": scan_id,
-
                     "port": result["port"],
-
                     "protocol": result["protocol"],
-
                     "state": result["state"],
-
                     "service": result["service"],
-
                     "version": result["version"]
-
                 })
 
             (
@@ -188,36 +147,26 @@ def save_scan(target, results):
         return scan_id
 
     except Exception as e:
-
-        print("Save scan error:", e)
-
+        print("Save scan error:", repr(e))
         raise
 
 
-# =====================================================
+# ============================================================
 # SAVE MULTIPLE TARGET SCAN
-# =====================================================
+# ============================================================
 
 def save_multiple_scan(targets, results):
-
     try:
-
         target_text = ", ".join(targets)
 
         scan_type = "tcp"
 
         if results:
-
             protocol = results[0].get(
                 "protocol",
                 "TCP"
             )
-
             scan_type = protocol.lower()
-
-        # ---------------------------------------------
-        # Insert scan
-        # ---------------------------------------------
 
         scan_response = (
             supabase
@@ -232,37 +181,23 @@ def save_multiple_scan(targets, results):
         )
 
         if not scan_response.data:
-
             raise RuntimeError(
                 "Unable to create scan record"
             )
 
         scan_id = scan_response.data[0]["id"]
 
-        # ---------------------------------------------
-        # Insert scan results
-        # ---------------------------------------------
-
         if results:
-
             scan_results = []
 
             for result in results:
-
                 scan_results.append({
-
                     "scan_id": scan_id,
-
                     "port": result["port"],
-
                     "protocol": result["protocol"],
-
                     "state": result["state"],
-
                     "service": result["service"],
-
                     "version": result["version"]
-
                 })
 
             (
@@ -275,25 +210,25 @@ def save_multiple_scan(targets, results):
         return scan_id
 
     except Exception as e:
-
-        print("Save multiple scan error:", e)
-
+        print(
+            "Save multiple scan error:",
+            repr(e)
+        )
         raise
 
 
-# =====================================================
-# GET SCAN HISTORY
-# =====================================================
+# ============================================================
+# SCAN HISTORY
+# ============================================================
 
 def get_scan_history():
-
     try:
-
         response = (
             supabase
             .table("scans")
             .select(
-                "id, target, scan_date, total_ports, scan_type, duration"
+                "id, target, scan_date, "
+                "total_ports, scan_type, duration"
             )
             .order(
                 "id",
@@ -305,33 +240,20 @@ def get_scan_history():
         history = []
 
         for row in response.data:
-
             history.append({
-
                 "id": row.get("id"),
-
                 "target": row.get("target"),
-
                 "scan_date": row.get("scan_date"),
-
-                "total_ports": row.get(
-                    "total_ports"
-                ),
-
-                "scan_type": row.get(
-                    "scan_type"
-                ),
-
-                "duration": row.get(
-                    "duration"
-                )
-
+                "total_ports": row.get("total_ports"),
+                "scan_type": row.get("scan_type"),
+                "duration": row.get("duration")
             })
 
         return history
 
     except Exception as e:
-
-        print("Get scan history error:", e)
-
-        return []
+        print(
+            "Get scan history error:",
+            repr(e)
+        )
+        raise
