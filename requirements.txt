@@ -1,4 +1,6 @@
 Flask
+supabase
 reportlab
-requests
 scapy
+requests
+python-dotenv
