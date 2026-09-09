@@ -10,149 +10,919 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Port Scanner - Login</title>
+    <title>SecureScan - Login</title>
 
     <style>
 
+        /* =====================================================
+           RESET
+           ===================================================== */
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
+
+        /* =====================================================
+           BODY
+           ===================================================== */
+
         body {
-            margin: 0;
 
             min-height: 100vh;
 
             display: flex;
-
             align-items: center;
-
             justify-content: center;
 
             font-family:
+                Inter,
                 Arial,
                 sans-serif;
 
-            background: #f5f7fb;
+            color: #e2e8f0;
+
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at 20% 20%,
+                    rgba(37, 99, 235, 0.18),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 80% 80%,
+                    rgba(14, 165, 233, 0.15),
+                    transparent 30%
+                ),
+
+                #050b14;
         }
+
+
+        /* =====================================================
+           ANIMATED GRID
+           ===================================================== */
+
+        body::before {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            opacity: 0.18;
+
+            background-image:
+                linear-gradient(
+                    rgba(56, 189, 248, 0.08) 1px,
+                    transparent 1px
+                ),
+
+                linear-gradient(
+                    90deg,
+                    rgba(56, 189, 248, 0.08) 1px,
+                    transparent 1px
+                );
+
+            background-size: 45px 45px;
+
+            animation:
+                gridMove 18s linear infinite;
+        }
+
+
+        @keyframes gridMove {
+
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(45px, 45px);
+            }
+        }
+
+
+        /* =====================================================
+           GLOW ORBS
+           ===================================================== */
+
+        .orb {
+
+            position: fixed;
+
+            width: 260px;
+            height: 260px;
+
+            border-radius: 50%;
+
+            filter: blur(80px);
+
+            opacity: 0.22;
+
+            pointer-events: none;
+        }
+
+
+        .orb-one {
+
+            top: -100px;
+            left: -80px;
+
+            background: #2563eb;
+
+            animation:
+                floatOne 7s ease-in-out infinite;
+        }
+
+
+        .orb-two {
+
+            right: -100px;
+            bottom: -100px;
+
+            background: #06b6d4;
+
+            animation:
+                floatTwo 9s ease-in-out infinite;
+        }
+
+
+        @keyframes floatOne {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(50px, 35px);
+            }
+        }
+
+
+        @keyframes floatTwo {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-45px, -30px);
+            }
+        }
+
+
+        /* =====================================================
+           MAIN WRAPPER
+           ===================================================== */
+
+        .auth-wrapper {
+
+            position: relative;
+
+            width: 100%;
+            max-width: 460px;
+
+            padding: 20px;
+
+            z-index: 2;
+
+            animation:
+                pageEnter 0.7s ease-out;
+        }
+
+
+        @keyframes pageEnter {
+
+            from {
+                opacity: 0;
+                transform: translateY(25px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+
+        /* =====================================================
+           LOGIN CARD
+           ===================================================== */
 
         .login-card {
 
-            width: 380px;
+            position: relative;
 
-            padding: 35px;
+            padding: 42px 40px;
 
-            background: white;
+            border-radius: 22px;
 
-            border-radius: 14px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(15, 28, 48, 0.94),
+                    rgba(7, 17, 31, 0.94)
+                );
+
+            border:
+                1px solid rgba(96, 165, 250, 0.18);
 
             box-shadow:
-                0 10px 30px
-                rgba(0, 0, 0, 0.10);
+
+                0 30px 80px
+                rgba(0, 0, 0, 0.55),
+
+                0 0 45px
+                rgba(37, 99, 235, 0.08);
+
+            backdrop-filter: blur(20px);
+
+            overflow: hidden;
+
+            transition:
+                transform 0.35s ease,
+                border-color 0.35s ease,
+                box-shadow 0.35s ease;
         }
 
-        h1 {
 
-            margin: 0 0 8px;
+        .login-card:hover {
 
-            text-align: center;
+            transform: translateY(-4px);
 
-            font-size: 28px;
+            border-color:
+                rgba(56, 189, 248, 0.35);
+
+            box-shadow:
+
+                0 35px 90px
+                rgba(0, 0, 0, 0.6),
+
+                0 0 55px
+                rgba(37, 99, 235, 0.14);
         }
 
-        .subtitle {
+
+        /* top glow */
+
+        .login-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: -30%;
+
+            width: 160%;
+            height: 2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    #2563eb,
+                    #38bdf8,
+                    transparent
+                );
+
+            animation:
+                topGlow 4s linear infinite;
+        }
+
+
+        @keyframes topGlow {
+
+            from {
+                transform: translateX(-35%);
+            }
+
+            to {
+                transform: translateX(35%);
+            }
+        }
+
+
+        /* =====================================================
+           BRAND
+           ===================================================== */
+
+        .brand {
 
             text-align: center;
-
-            color: #64748b;
 
             margin-bottom: 30px;
         }
+
+
+        .brand-icon {
+
+            width: 72px;
+            height: 72px;
+
+            margin: 0 auto 18px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 20px;
+
+            font-size: 34px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #123c70,
+                    #0b1d36
+                );
+
+            border:
+                1px solid rgba(96, 165, 250, 0.25);
+
+            box-shadow:
+                0 0 30px
+                rgba(37, 99, 235, 0.18);
+
+            animation:
+                shieldFloat 3s ease-in-out infinite;
+        }
+
+
+        @keyframes shieldFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+
+        .brand h1 {
+
+            font-size: 28px;
+
+            letter-spacing: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #f8fafc,
+                    #93c5fd,
+                    #38bdf8
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .brand p {
+
+            margin-top: 8px;
+
+            color: #64748b;
+
+            font-size: 13px;
+
+            letter-spacing: 0.5px;
+        }
+
+
+        /* =====================================================
+           FORM
+           ===================================================== */
+
+        .form-group {
+
+            margin-bottom: 20px;
+        }
+
 
         label {
 
             display: block;
 
-            margin-bottom: 7px;
+            margin-bottom: 8px;
 
-            font-weight: bold;
+            color: #cbd5e1;
+
+            font-size: 13px;
+
+            font-weight: 600;
         }
+
+
+        .input-wrapper {
+
+            position: relative;
+        }
+
+
+        .input-icon {
+
+            position: absolute;
+
+            left: 15px;
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #64748b;
+
+            font-size: 17px;
+
+            pointer-events: none;
+
+            transition:
+                color 0.25s ease;
+        }
+
 
         input {
 
             width: 100%;
 
-            padding: 13px;
+            height: 50px;
 
-            margin-bottom: 18px;
+            padding:
+                0 48px;
 
-            border: 1px solid #cbd5e1;
+            border-radius: 12px;
 
-            border-radius: 8px;
-
-            font-size: 15px;
-        }
-
-        input:focus {
+            border:
+                1px solid #24344a;
 
             outline: none;
 
-            border-color: #2563eb;
+            background:
+                rgba(5, 13, 25, 0.8);
+
+            color: #f8fafc;
+
+            font-size: 14px;
+
+            transition:
+                border-color 0.25s ease,
+                box-shadow 0.25s ease,
+                transform 0.25s ease,
+                background 0.25s ease;
         }
 
-        button {
 
-            width: 100%;
+        input::placeholder {
 
-            padding: 13px;
+            color: #475569;
+        }
+
+
+        input:focus {
+
+            border-color: #38bdf8;
+
+            background:
+                rgba(7, 18, 33, 0.95);
+
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(56, 189, 248, 0.08),
+
+                0 8px 25px
+                rgba(0, 0, 0, 0.2);
+        }
+
+
+        .input-wrapper:focus-within .input-icon {
+
+            color: #38bdf8;
+        }
+
+
+        /* =====================================================
+           PASSWORD TOGGLE
+           ===================================================== */
+
+        .password-toggle {
+
+            position: absolute;
+
+            right: 14px;
+            top: 50%;
+
+            transform: translateY(-50%);
 
             border: none;
 
-            border-radius: 8px;
+            background: transparent;
 
-            background: #2563eb;
+            color: #64748b;
 
-            color: white;
+            width: auto;
+
+            padding: 5px;
+
+            cursor: pointer;
 
             font-size: 16px;
 
-            font-weight: bold;
+            transition:
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+
+        .password-toggle:hover {
+
+            color: #38bdf8;
+
+            transform:
+                translateY(-50%)
+                scale(1.1);
+        }
+
+
+        /* =====================================================
+           LOGIN BUTTON
+           ===================================================== */
+
+        #loginButton {
+
+            position: relative;
+
+            width: 100%;
+
+            height: 52px;
+
+            margin-top: 8px;
+
+            border: none;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #0ea5e9
+                );
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.5px;
 
             cursor: pointer;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 8px 25px
+                rgba(37, 99, 235, 0.25);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                filter 0.2s ease;
         }
 
-        button:hover {
 
-            background: #1d4ed8;
+        #loginButton::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: -120%;
+
+            width: 70%;
+            height: 100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255,255,255,0.22),
+                    transparent
+                );
+
+            transform: skewX(-20deg);
+
+            transition:
+                left 0.6s ease;
         }
+
+
+        #loginButton:hover {
+
+            transform: translateY(-2px);
+
+            filter: brightness(1.08);
+
+            box-shadow:
+                0 12px 35px
+                rgba(37, 99, 235, 0.4);
+        }
+
+
+        #loginButton:hover::before {
+
+            left: 130%;
+        }
+
+
+        #loginButton:active {
+
+            transform: translateY(0);
+        }
+
+
+        #loginButton:disabled {
+
+            cursor: not-allowed;
+
+            opacity: 0.75;
+        }
+
+
+        /* =====================================================
+           LOADING
+           ===================================================== */
+
+        .spinner {
+
+            display: inline-block;
+
+            width: 17px;
+            height: 17px;
+
+            border:
+                2px solid
+                rgba(255,255,255,0.35);
+
+            border-top-color: white;
+
+            border-radius: 50%;
+
+            animation:
+                spin 0.7s linear infinite;
+
+            vertical-align: middle;
+
+            margin-right: 8px;
+        }
+
+
+        @keyframes spin {
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+
+        /* =====================================================
+           MESSAGE
+           ===================================================== */
 
         #message {
+
+            min-height: 20px;
 
             margin-top: 18px;
 
             text-align: center;
 
-            font-size: 14px;
+            font-size: 13px;
 
-            color: #dc2626;
+            font-weight: 600;
+
+            transition:
+                opacity 0.25s ease;
         }
+
+
+        .message-error {
+
+            color: #f87171;
+
+            animation:
+                shake 0.4s ease;
+        }
+
+
+        .message-success {
+
+            color: #4ade80;
+
+            animation:
+                successPop 0.45s ease;
+        }
+
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+
+        @keyframes successPop {
+
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+
+        /* =====================================================
+           REGISTER LINK
+           ===================================================== */
 
         .register-text {
 
-            margin-top: 22px;
+            margin-top: 25px;
+
+            padding-top: 20px;
+
+            border-top:
+                1px solid
+                rgba(148, 163, 184, 0.10);
 
             text-align: center;
 
             color: #64748b;
+
+            font-size: 13px;
         }
+
 
         .register-text a {
 
-            color: #2563eb;
+            color: #38bdf8;
 
             text-decoration: none;
 
-            font-weight: bold;
+            font-weight: 700;
+
+            transition:
+                color 0.2s ease;
+        }
+
+
+        .register-text a:hover {
+
+            color: #7dd3fc;
+
+            text-decoration: underline;
+        }
+
+
+        /* =====================================================
+           SECURITY FOOTER
+           ===================================================== */
+
+        .security-note {
+
+            margin-top: 22px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 7px;
+
+            color: #475569;
+
+            font-size: 11px;
+        }
+
+
+        .security-dot {
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 10px
+                rgba(34, 197, 94, 0.6);
+
+            animation:
+                securityPulse 2s infinite;
+        }
+
+
+        @keyframes securityPulse {
+
+            0%,
+            100% {
+                box-shadow:
+                    0 0 4px
+                    rgba(34, 197, 94, 0.3);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 14px
+                    rgba(34, 197, 94, 0.7);
+            }
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 500px) {
+
+            body {
+                overflow-y: auto;
+            }
+
+            .auth-wrapper {
+                padding: 15px;
+            }
+
+            .login-card {
+                padding: 32px 24px;
+                border-radius: 18px;
+            }
+
+            .brand h1 {
+                font-size: 25px;
+            }
+
+            .brand-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 30px;
+            }
+        }
+
+
+        /* =====================================================
+           REDUCED MOTION
+           ===================================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    0.01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    0.01ms !important;
+            }
         }
 
     </style>
@@ -163,188 +933,371 @@
 <body>
 
 
-    <div class="login-card">
+    <!-- Animated background -->
 
-        <h1>
-            Port Scanner
-        </h1>
-
-        <p class="subtitle">
-            Login to continue
-        </p>
+    <div class="orb orb-one"></div>
+    <div class="orb orb-two"></div>
 
 
-        <form id="loginForm">
-
-            <label for="username">
-                Username
-            </label>
-
-            <input
-                type="text"
-                id="username"
-                placeholder="Enter username"
-                required
-            >
+    <div class="auth-wrapper">
 
 
-            <label for="password">
-                Password
-            </label>
-
-            <input
-                type="password"
-                id="password"
-                placeholder="Enter password"
-                required
-            >
+        <div class="login-card">
 
 
-            <button
-                type="submit"
-                id="loginButton"
-            >
-                Login
-            </button>
+            <!-- BRAND -->
 
-        </form>
+            <div class="brand">
+
+                <div class="brand-icon">
+                    🛡️
+                </div>
+
+                <h1>
+                    SECURESCAN
+                </h1>
+
+                <p>
+                    Network Security & Port Intelligence
+                </p>
+
+            </div>
 
 
-        <div id="message"></div>
+            <!-- LOGIN FORM -->
+
+            <form id="loginForm">
 
 
-        <p class="register-text">
+                <!-- USERNAME -->
 
-            Don't have an account?
+                <div class="form-group">
 
-            <a href="/register-page">
-                Register
-            </a>
+                    <label for="username">
+                        Username
+                    </label>
 
-        </p>
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            👤
+                        </span>
+
+                        <input
+                            type="text"
+                            id="username"
+                            placeholder="Enter your username"
+                            autocomplete="username"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            🔒
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="passwordToggle"
+                            aria-label="Show password"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOGIN -->
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                >
+                    Login
+                </button>
+
+
+            </form>
+
+
+            <!-- MESSAGE -->
+
+            <div id="message"></div>
+
+
+            <!-- REGISTER -->
+
+            <p class="register-text">
+
+                Don't have an account?
+
+                <a href="/register-page">
+                    Create Account
+                </a>
+
+            </p>
+
+
+            <!-- SECURITY -->
+
+            <div class="security-note">
+
+                <span class="security-dot"></span>
+
+                Secure authentication enabled
+
+            </div>
+
+
+        </div>
 
     </div>
 
 
-<script>
+    <script>
 
-    document
-        .getElementById("loginForm")
-        .addEventListener(
-            "submit",
-            async function(event) {
+        /* =====================================================
+           PASSWORD SHOW / HIDE
+           ===================================================== */
 
-                event.preventDefault();
+        const passwordInput =
+            document.getElementById("password");
 
-
-                const username =
-                    document
-                        .getElementById("username")
-                        .value
-                        .trim();
+        const passwordToggle =
+            document.getElementById("passwordToggle");
 
 
-                const password =
-                    document
-                        .getElementById("password")
-                        .value;
+        passwordToggle.addEventListener(
+            "click",
+            function() {
 
+                if (
+                    passwordInput.type ===
+                    "password"
+                ) {
 
-                const message =
-                    document
-                        .getElementById("message");
+                    passwordInput.type =
+                        "text";
 
+                    passwordToggle.innerText =
+                        "🙈";
 
-                const loginButton =
-                    document
-                        .getElementById("loginButton");
-
-
-                message.innerText =
-                    "Logging in...";
-
-
-                loginButton.disabled =
-                    true;
-
-
-                try {
-
-                    const response =
-                        await fetch(
-                            "/login",
-                            {
-
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-                                        username:
-                                            username,
-                                        password:
-                                            password
-                                    })
-
-                            }
-                        );
-
-
-                    const data =
-                        await response.json();
-
-
-                    if (!response.ok) {
-
-                        message.innerText =
-                            data.error ||
-                            "Login failed.";
-
-                        loginButton.disabled =
-                            false;
-
-                        return;
-                    }
-
-
-                    message.style.color =
-                        "#16a34a";
-
-                    message.innerText =
-                        "Login successful!";
-
-
-                    setTimeout(
-                        function() {
-
-                            window.location.href =
-                                "/";
-
-                        },
-                        700
+                    passwordToggle.setAttribute(
+                        "aria-label",
+                        "Hide password"
                     );
 
-
                 }
-                catch (error) {
 
-                    console.error(error);
+                else {
 
-                    message.innerText =
-                        "Unable to connect to server.";
+                    passwordInput.type =
+                        "password";
 
-                    loginButton.disabled =
-                        false;
+                    passwordToggle.innerText =
+                        "👁";
+
+                    passwordToggle.setAttribute(
+                        "aria-label",
+                        "Show password"
+                    );
+
                 }
 
             }
         );
 
-</script>
+
+        /* =====================================================
+           LOGIN
+           ===================================================== */
+
+        document
+            .getElementById("loginForm")
+            .addEventListener(
+                "submit",
+                async function(event) {
+
+                    event.preventDefault();
+
+
+                    const username =
+                        document
+                            .getElementById(
+                                "username"
+                            )
+                            .value
+                            .trim();
+
+
+                    const password =
+                        document
+                            .getElementById(
+                                "password"
+                            )
+                            .value;
+
+
+                    const message =
+                        document.getElementById(
+                            "message"
+                        );
+
+
+                    const loginButton =
+                        document.getElementById(
+                            "loginButton"
+                        );
+
+
+                    /* Clear previous message */
+
+                    message.className = "";
+
+                    message.innerText = "";
+
+
+                    /* Loading */
+
+                    loginButton.disabled = true;
+
+                    loginButton.innerHTML =
+                        '<span class="spinner"></span>Authenticating...';
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                "/login",
+                                {
+
+                                    method:
+                                        "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify({
+                                            username:
+                                                username,
+
+                                            password:
+                                                password
+                                        })
+
+                                }
+                            );
+
+
+                        const data =
+                            await response.json();
+
+
+                        /* =========================
+                           ERROR
+                           ========================= */
+
+                        if (!response.ok) {
+
+                            message.className =
+                                "message-error";
+
+                            message.innerText =
+                                data.error ||
+                                "Login failed.";
+
+                            loginButton.disabled =
+                                false;
+
+                            loginButton.innerText =
+                                "Login";
+
+                            return;
+                        }
+
+
+                        /* =========================
+                           SUCCESS
+                           ========================= */
+
+                        message.className =
+                            "message-success";
+
+                        message.innerText =
+                            "✓ Login successful!";
+
+
+                        loginButton.innerText =
+                            "✓ Access Granted";
+
+
+                        /* Redirect */
+
+                        setTimeout(
+                            function() {
+
+                                window.location.href =
+                                    "/";
+
+                            },
+                            800
+                        );
+
+                    }
+
+
+                    catch (error) {
+
+                        console.error(error);
+
+
+                        message.className =
+                            "message-error";
+
+                        message.innerText =
+                            "Unable to connect to server.";
+
+
+                        loginButton.disabled =
+                            false;
+
+                        loginButton.innerText =
+                            "Login";
+                    }
+
+                }
+            );
+
+    </script>
 
 
 </body>

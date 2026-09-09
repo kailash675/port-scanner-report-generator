@@ -1246,3 +1246,571 @@ a {
         padding-right: 18px;
     }
 }
+
+/* =========================================================
+   SECURESCAN PRO UI ENHANCEMENTS
+   ========================================================= */
+
+/* Smooth page appearance */
+body {
+    animation: pageFadeIn 0.5s ease-out;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================
+   SIDEBAR PRO EFFECT
+   ========================= */
+
+.sidebar {
+    background:
+        linear-gradient(
+            180deg,
+            #07111f 0%,
+            #0a1424 50%,
+            #07101c 100%
+        );
+
+    box-shadow:
+        8px 0 30px rgba(0, 0, 0, 0.25);
+
+    transition:
+        width 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.sidebar:hover {
+    box-shadow:
+        8px 0 35px rgba(37, 99, 235, 0.12);
+}
+
+
+/* =========================
+   BRAND
+   ========================= */
+
+.brand-icon {
+    background:
+        linear-gradient(
+            135deg,
+            #123c70,
+            #0b1d36
+        );
+
+    box-shadow:
+        0 0 20px rgba(59, 130, 246, 0.12);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.brand:hover .brand-icon {
+    transform: rotate(-4deg) scale(1.05);
+
+    box-shadow:
+        0 0 25px rgba(59, 130, 246, 0.3);
+}
+
+
+/* =========================
+   NAVIGATION
+   ========================= */
+
+.nav-link {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.25s ease,
+        background 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.nav-link::before {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: 3px;
+    height: 100%;
+
+    background: #38bdf8;
+
+    transform: scaleY(0);
+
+    transition:
+        transform 0.25s ease;
+}
+
+.nav-link:hover {
+    transform: translateX(4px);
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(37, 99, 235, 0.16),
+            rgba(37, 99, 235, 0.04)
+        );
+
+    border-color: #1e3a5f;
+}
+
+.nav-link:hover::before {
+    transform: scaleY(1);
+}
+
+.nav-link.active {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(37, 99, 235, 0.25),
+            rgba(14, 165, 233, 0.08)
+        );
+
+    border-color: #2563eb;
+
+    box-shadow:
+        inset 3px 0 0 #38bdf8,
+        0 4px 18px rgba(37, 99, 235, 0.12);
+}
+
+.nav-icon {
+    transition:
+        transform 0.25s ease;
+}
+
+.nav-link:hover .nav-icon {
+    transform: scale(1.15);
+}
+
+
+/* =========================
+   MAIN CONTENT
+   ========================= */
+
+.main-content {
+    background:
+        radial-gradient(
+            circle at 85% 5%,
+            rgba(37, 99, 235, 0.12),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 15% 80%,
+            rgba(14, 165, 233, 0.06),
+            transparent 25%
+        ),
+        #080f1c;
+}
+
+
+/* =========================
+   HEADER
+   ========================= */
+
+.page-title h1 {
+    background:
+        linear-gradient(
+            90deg,
+            #f8fafc,
+            #93c5fd,
+            #38bdf8
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* =========================
+   SYSTEM STATUS
+   ========================= */
+
+.status-dot {
+    animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(34, 197, 94, 0.6);
+    }
+
+    70% {
+        box-shadow:
+            0 0 0 8px rgba(34, 197, 94, 0);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+
+/* =========================
+   OVERVIEW CARDS
+   ========================= */
+
+.overview-card {
+    position: relative;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.overview-card::after {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 60%;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #38bdf8,
+            transparent
+        );
+
+    transition:
+        left 0.6s ease;
+}
+
+.overview-card:hover {
+    transform: translateY(-5px);
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.25),
+        0 0 20px rgba(37, 99, 235, 0.08);
+}
+
+.overview-card:hover::after {
+    left: 100%;
+}
+
+
+/* =========================
+   GENERAL CARDS
+   ========================= */
+
+.card {
+    position: relative;
+
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.18);
+
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.card:hover {
+    border-color: #263f60;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================
+   SCAN INPUT
+   ========================= */
+
+.scan-input {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
+}
+
+.scan-input:focus {
+    transform: translateY(-1px);
+
+    border-color: #38bdf8;
+
+    box-shadow:
+        0 0 0 3px rgba(56, 189, 248, 0.10),
+        0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+
+/* =========================
+   SCAN BUTTON
+   ========================= */
+
+.scan-button {
+    position: relative;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #0ea5e9
+        );
+
+    box-shadow:
+        0 6px 20px rgba(37, 99, 235, 0.25);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.scan-button::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -120%;
+
+    width: 80%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+
+    transform: skewX(-20deg);
+
+    transition:
+        left 0.6s ease;
+}
+
+.scan-button:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.08);
+
+    box-shadow:
+        0 10px 30px rgba(37, 99, 235, 0.35);
+}
+
+.scan-button:hover::before {
+    left: 130%;
+}
+
+.scan-button:active {
+    transform: translateY(0);
+}
+
+
+/* =========================
+   TABLE ANIMATION
+   ========================= */
+
+.results-table tbody tr {
+    animation: rowAppear 0.4s ease both;
+}
+
+.results-table tbody tr:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.results-table tbody tr:nth-child(2) {
+    animation-delay: 0.10s;
+}
+
+.results-table tbody tr:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.results-table tbody tr:nth-child(4) {
+    animation-delay: 0.20s;
+}
+
+.results-table tbody tr:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+@keyframes rowAppear {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-table tbody tr:hover td {
+    background: rgba(37, 99, 235, 0.06);
+}
+
+
+/* =========================
+   OPEN BADGE
+   ========================= */
+
+.open-badge {
+    box-shadow:
+        0 0 10px rgba(74, 222, 128, 0.08);
+
+    animation: badgeGlow 2.5s infinite;
+}
+
+@keyframes badgeGlow {
+    0%,
+    100% {
+        box-shadow:
+            0 0 5px rgba(74, 222, 128, 0.05);
+    }
+
+    50% {
+        box-shadow:
+            0 0 14px rgba(74, 222, 128, 0.15);
+    }
+}
+
+
+/* =========================
+   STATUS BOX
+   ========================= */
+
+.status-box {
+    animation: statusAppear 0.35s ease-out;
+}
+
+.error-box {
+    animation: statusAppear 0.35s ease-out;
+}
+
+@keyframes statusAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================
+   CVE CARD
+   ========================= */
+
+.cve-card {
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.cve-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #5f2028;
+}
+
+
+/* =========================
+   PCAP UPLOAD
+   ========================= */
+
+.file-input {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.file-input:focus {
+    border-color: #38bdf8;
+
+    box-shadow:
+        0 0 0 3px rgba(56, 189, 248, 0.08);
+}
+
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.footer {
+    opacity: 0.7;
+}
+
+
+/* =========================
+   SELECTION
+   ========================= */
+
+::selection {
+    background: rgba(56, 189, 248, 0.25);
+    color: #f8fafc;
+}
+
+
+/* =========================
+   SCROLLBAR
+   ========================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #060b13;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2563eb;
+}
+
+
+/* =========================
+   REDUCED MOTION
+   ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

@@ -1,25 +1,12 @@
-from flask import (
-    Flask,
-    request,
-    jsonify,
-    render_template,
-    send_file,
-    session,
-    redirect
-)
-
+from flask import Flask, request, jsonify, render_template, send_file, session, redirect
 from werkzeug.utils import secure_filename
-
 from analyzer.pcap_analyzer import analyze_pcap
-
 import re
 import os
+import sqlite3
 import time
 
-from scanner.nmap_scanner import (
-    scan_target,
-    scan_multiple_targets
-)
+from scanner.nmap_scanner import scan_target, scan_multiple_targets
 
 from database.database import (
     create_tables,
@@ -27,24 +14,17 @@ from database.database import (
     save_multiple_scan,
     get_scan_history,
     create_user,
-    verify_user,
-    supabase
+    verify_user
 )
 
 from analyzer.recommendations import generate_recommendations
 from analyzer.cve_lookup import lookup_cves
 
 from reports.report_generator import generate_pdf
-
 from email_sender import send_report_email
 
 
-# ============================================================
-# FLASK APP
-# ============================================================
-
 app = Flask(__name__)
-
 
 UPLOAD_FOLDER = "uploads/pcap"
 
@@ -54,18 +34,8 @@ os.makedirs(
 )
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-
-# ============================================================
-# SESSION SECURITY
-# ============================================================
-
+# Session security
 app.secret_key = "port-scanner-secret-key-change-this"
-
-
-# ============================================================
-# DATABASE INITIALIZATION
-# ============================================================
 
 create_tables()
 
@@ -97,67 +67,34 @@ def is_valid_target(target):
 
 
 # ============================================================
-# GET SCAN DATE FROM SUPABASE
+# GET SCAN DATE
 # ============================================================
 
 def get_scan_date(scan_id):
 
-    try:
+    connection = sqlite3.connect(
+        "database/port_scanner.db"
+    )
 
-        response = (
-            supabase
-            .table("scans")
-            .select("scan_date")
-            .eq("id", scan_id)
-            .limit(1)
-            .execute()
-        )
+    cursor = connection.cursor()
 
-        if response.data:
+    cursor.execute(
+        """
+        SELECT scan_date
+        FROM scans
+        WHERE id = ?
+        """,
+        (scan_id,)
+    )
 
-            return response.data[0].get(
-                "scan_date",
-                ""
-            )
+    row = cursor.fetchone()
 
-        return ""
+    connection.close()
 
-    except Exception as e:
+    if row:
+        return row[0]
 
-        print("Get scan date error:", e)
-
-        return ""
-
-
-# ============================================================
-# UPDATE SCAN METADATA
-# ============================================================
-
-def update_scan_metadata(
-    scan_id,
-    scan_type,
-    duration
-):
-
-    try:
-
-        (
-            supabase
-            .table("scans")
-            .update({
-                "scan_type": scan_type,
-                "duration": duration
-            })
-            .eq("id", scan_id)
-            .execute()
-        )
-
-    except Exception as e:
-
-        print(
-            "Update scan metadata error:",
-            e
-        )
+    return ""
 
 
 # ============================================================
@@ -199,11 +136,6 @@ def add_cve_information(results):
 
     return updated_results
 
-
-# ============================================================
-# LOGIN PAGE
-# ============================================================
-
 @app.route("/login-page")
 def login_page():
 
@@ -212,21 +144,12 @@ def login_page():
     )
 
 
-# ============================================================
-# REGISTER PAGE
-# ============================================================
-
 @app.route("/register-page")
 def register_page():
 
     return render_template(
         "register.html"
     )
-
-
-# ============================================================
-# HOME
-# ============================================================
 
 @app.route("/")
 def home():
@@ -256,6 +179,7 @@ def register():
             "error": "Invalid or missing JSON data"
         }), 400
 
+
     username = data.get(
         "username",
         ""
@@ -266,11 +190,13 @@ def register():
         ""
     )
 
+
     if not username:
 
         return jsonify({
             "error": "Username is required"
         }), 400
+
 
     if not password:
 
@@ -278,17 +204,20 @@ def register():
             "error": "Password is required"
         }), 400
 
+
     if len(username) < 3:
 
         return jsonify({
             "error": "Username must contain at least 3 characters"
         }), 400
 
+
     if len(password) < 6:
 
         return jsonify({
             "error": "Password must contain at least 6 characters"
         }), 400
+
 
     try:
 
@@ -297,11 +226,13 @@ def register():
             password
         )
 
+
         if not created:
 
             return jsonify({
                 "error": "Username already exists"
             }), 409
+
 
         return jsonify({
 
@@ -310,6 +241,7 @@ def register():
             "message": "User registered successfully"
 
         }), 201
+
 
     except Exception as e:
 
@@ -338,6 +270,7 @@ def login():
             "error": "Invalid or missing JSON data"
         }), 400
 
+
     username = data.get(
         "username",
         ""
@@ -348,11 +281,13 @@ def login():
         ""
     )
 
+
     if not username or not password:
 
         return jsonify({
             "error": "Username and password are required"
         }), 400
+
 
     try:
 
@@ -361,15 +296,18 @@ def login():
             password
         )
 
+
         if not user:
 
             return jsonify({
                 "error": "Invalid username or password"
             }), 401
 
+
         session["user_id"] = user["id"]
 
         session["username"] = user["username"]
+
 
         return jsonify({
 
@@ -380,6 +318,7 @@ def login():
             "username": user["username"]
 
         })
+
 
     except Exception as e:
 
@@ -425,6 +364,7 @@ def current_user():
             "authenticated": False
         })
 
+
     return jsonify({
 
         "authenticated": True,
@@ -446,19 +386,13 @@ def current_user():
 )
 def scan():
 
-    # --------------------------------------------------------
-    # LOGIN REQUIRED
-    # --------------------------------------------------------
-
+    # Login required
     if "user_id" not in session:
 
         return jsonify({
             "error": "Please login before scanning"
         }), 401
 
-    # --------------------------------------------------------
-    # READ JSON
-    # --------------------------------------------------------
 
     data = request.get_json(
         silent=True
@@ -470,31 +404,11 @@ def scan():
             "error": "Invalid or missing JSON data"
         }), 400
 
+
     target = data.get(
         "target"
     )
 
-    # --------------------------------------------------------
-    # SCAN TYPE
-    # --------------------------------------------------------
-
-    scan_type = data.get(
-        "scan_type",
-        "tcp"
-    ).lower()
-
-    if scan_type not in [
-        "tcp",
-        "udp"
-    ]:
-
-        return jsonify({
-            "error": "Invalid scan type. Choose TCP or UDP."
-        }), 400
-
-    # --------------------------------------------------------
-    # TARGET REQUIRED
-    # --------------------------------------------------------
 
     if not target:
 
@@ -510,6 +424,7 @@ def scan():
 
         targets = []
 
+
         for item in target:
 
             if not isinstance(item, str):
@@ -518,10 +433,13 @@ def scan():
                     "error": "Each target must be a string"
                 }), 400
 
+
             item = item.strip()
+
 
             if not item:
                 continue
+
 
             if not is_valid_target(item):
 
@@ -529,7 +447,9 @@ def scan():
                     "error": f"Invalid target: {item}"
                 }), 400
 
+
             targets.append(item)
+
 
         if not targets:
 
@@ -537,83 +457,40 @@ def scan():
                 "error": "At least one valid target is required"
             }), 400
 
-        try:
 
-            # ------------------------------------------------
-            # START TIMER
-            # ------------------------------------------------
+        try:
 
             start_time = time.perf_counter()
 
-            # ------------------------------------------------
-            # NMAP SCAN
-            # ------------------------------------------------
 
-            raw_results = scan_multiple_targets(
-                targets,
-                scan_type
+            all_results = scan_multiple_targets(
+                targets
             )
 
-            # ------------------------------------------------
-            # FLATTEN RESULTS
-            # ------------------------------------------------
-
-            all_results = []
-
-            for target_data in raw_results:
-
-                target_name = target_data.get(
-                    "target"
-                )
-
-                target_results = target_data.get(
-                    "results",
-                    []
-                )
-
-                for result in target_results:
-
-                    result_copy = dict(result)
-
-                    result_copy["target"] = target_name
-
-                    all_results.append(
-                        result_copy
-                    )
-
-            # ------------------------------------------------
-            # CVE
-            # ------------------------------------------------
 
             all_results = add_cve_information(
                 all_results
             )
 
-            # ------------------------------------------------
-            # RECOMMENDATIONS
-            # ------------------------------------------------
 
             recommendations = []
+
 
             for target_name in targets:
 
                 target_results = [
-
                     result
-
                     for result in all_results
-
-                    if result.get(
-                        "target"
-                    ) == target_name
-
+                    if result.get("target") == target_name
                 ]
+
 
                 target_recommendations = (
                     generate_recommendations(
                         target_results
                     )
                 )
+
 
                 for recommendation in target_recommendations:
 
@@ -623,46 +500,23 @@ def scan():
                             recommendation
                         )
 
-            # ------------------------------------------------
-            # SAVE SCAN TO SUPABASE
-            # ------------------------------------------------
 
             scan_id = save_multiple_scan(
                 targets,
                 all_results
             )
 
-            # ------------------------------------------------
-            # CALCULATE DURATION
-            # ------------------------------------------------
-
-            scan_duration = round(
-                time.perf_counter()
-                - start_time,
-                2
-            )
-
-            # ------------------------------------------------
-            # SAVE TCP / UDP + DURATION ONLINE
-            # ------------------------------------------------
-
-            update_scan_metadata(
-                scan_id,
-                scan_type.upper(),
-                scan_duration
-            )
-
-            # ------------------------------------------------
-            # GET DATE FROM SUPABASE
-            # ------------------------------------------------
 
             scan_date = get_scan_date(
                 scan_id
             )
 
-            # ------------------------------------------------
-            # PDF
-            # ------------------------------------------------
+
+            scan_duration = round(
+                time.perf_counter() - start_time,
+                2
+            )
+
 
             pdf_path = generate_pdf(
                 scan_id,
@@ -673,9 +527,6 @@ def scan():
                 scan_duration
             )
 
-            # ------------------------------------------------
-            # RESPONSE
-            # ------------------------------------------------
 
             return jsonify({
 
@@ -684,8 +535,6 @@ def scan():
                 "targets": targets,
 
                 "total_targets": len(targets),
-
-                "scan_type": scan_type.upper(),
 
                 "scan_id": scan_id,
 
@@ -701,16 +550,13 @@ def scan():
 
             })
 
-        except Exception as e:
 
-            print(
-                "Multiple scan error:",
-                e
-            )
+        except Exception as e:
 
             return jsonify({
                 "error": str(e)
             }), 500
+
 
     # ========================================================
     # SINGLE TARGET SCAN
@@ -722,7 +568,9 @@ def scan():
             "error": "Target must be a string or list"
         }), 400
 
+
     target = target.strip()
+
 
     if not target:
 
@@ -730,85 +578,50 @@ def scan():
             "error": "Target is required"
         }), 400
 
+
     if not is_valid_target(target):
 
         return jsonify({
             "error": "Invalid target. Enter a valid IP address or domain."
         }), 400
 
-    try:
 
-        # ----------------------------------------------------
-        # START TIMER
-        # ----------------------------------------------------
+    try:
 
         start_time = time.perf_counter()
 
-        # ----------------------------------------------------
-        # NMAP SCAN
-        # ----------------------------------------------------
 
         results = scan_target(
-            target,
-            scan_type
+            target
         )
 
-        # ----------------------------------------------------
-        # CVE
-        # ----------------------------------------------------
 
         results = add_cve_information(
             results
         )
 
-        # ----------------------------------------------------
-        # RECOMMENDATIONS
-        # ----------------------------------------------------
-
-        recommendations = generate_recommendations(
-            results
-        )
-
-        # ----------------------------------------------------
-        # CALCULATE DURATION
-        # ----------------------------------------------------
-
-        scan_duration = round(
-            time.perf_counter()
-            - start_time,
-            2
-        )
-
-        # ----------------------------------------------------
-        # SAVE TO SUPABASE
-        # ----------------------------------------------------
 
         scan_id = save_scan(
             target,
             results
         )
 
-        # ----------------------------------------------------
-        # SAVE TCP / UDP + DURATION
-        # ----------------------------------------------------
 
-        update_scan_metadata(
-            scan_id,
-            scan_type.upper(),
-            scan_duration
+        recommendations = generate_recommendations(
+            results
         )
 
-        # ----------------------------------------------------
-        # GET DATE FROM SUPABASE
-        # ----------------------------------------------------
 
         scan_date = get_scan_date(
             scan_id
         )
 
-        # ----------------------------------------------------
-        # PDF
-        # ----------------------------------------------------
+
+        scan_duration = round(
+            time.perf_counter() - start_time,
+            2
+        )
+
 
         pdf_path = generate_pdf(
             scan_id,
@@ -819,17 +632,12 @@ def scan():
             scan_duration
         )
 
-        # ----------------------------------------------------
-        # RESPONSE
-        # ----------------------------------------------------
 
         return jsonify({
 
             "status": "success",
 
             "target": target,
-
-            "scan_type": scan_type.upper(),
 
             "scan_id": scan_id,
 
@@ -845,21 +653,13 @@ def scan():
 
         })
 
-    except Exception as e:
 
-        print(
-            "Single scan error:",
-            e
-        )
+    except Exception as e:
 
         return jsonify({
             "error": str(e)
         }), 500
 
-
-# ============================================================
-# PCAP ANALYSIS
-# ============================================================
 
 @app.route(
     "/pcap/analyze",
@@ -961,52 +761,127 @@ def history():
 
     if "user_id" not in session:
 
-        return redirect(
-            "/login-page"
-        )
+        return jsonify({
+            "error": "Please login before viewing scan history"
+        }), 401
+
 
     try:
 
         scans = get_scan_history()
 
-        # ----------------------------------------------------
-        # Convert Supabase dictionaries into the tuple format
-        # expected by the existing history.html
-        # ----------------------------------------------------
 
-        history_rows = []
+        return jsonify({
 
-        for scan_data in scans:
+            "status": "success",
 
-            history_rows.append((
+            "history": scans
 
-                scan_data.get("id"),
+        })
 
-                scan_data.get("target"),
-
-                scan_data.get("scan_date"),
-
-                scan_data.get("total_ports"),
-
-                scan_data.get("scan_type"),
-
-                scan_data.get("duration")
-
-            ))
-
-        return render_template(
-            "history.html",
-            history=history_rows
-        )
 
     except Exception as e:
 
-        return (
-            f"Error loading scan history: {e}",
-            500
+        return jsonify({
+
+            "error": str(e)
+
+        }), 500
+
+@app.route(
+    "/email-report",
+    methods=["POST"]
+)
+def email_report():
+
+    if "user_id" not in session:
+
+        return jsonify({
+            "error": "Please login before sending reports"
+        }), 401
+
+
+    data = request.get_json(
+        silent=True
+    )
+
+
+    if not data:
+
+        return jsonify({
+            "error": "Invalid or missing JSON data"
+        }), 400
+
+
+    scan_id = data.get("scan_id")
+
+    receiver_email = data.get(
+        "email",
+        ""
+    ).strip()
+
+
+    if not scan_id:
+
+        return jsonify({
+            "error": "Scan ID is required"
+        }), 400
+
+
+    if not receiver_email:
+
+        return jsonify({
+            "error": "Receiver email is required"
+        }), 400
+
+
+    if not re.match(
+        r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+        receiver_email
+    ):
+
+        return jsonify({
+            "error": "Invalid email address"
+        }), 400
+
+
+    pdf_path = (
+        f"reports/scan_report_{scan_id}.pdf"
+    )
+
+
+    if not os.path.exists(pdf_path):
+
+        return jsonify({
+            "error": "PDF report not found"
+        }), 404
+
+
+    try:
+
+        send_report_email(
+            receiver_email,
+            pdf_path
         )
 
 
+        return jsonify({
+
+            "status": "success",
+
+            "message":
+                "PDF report sent successfully"
+
+        })
+
+
+    except Exception as e:
+
+        return jsonify({
+
+            "error": str(e)
+
+        }), 500
 # ============================================================
 # PDF REPORT
 # ============================================================
@@ -1019,171 +894,58 @@ def report(scan_id):
 
     if "user_id" not in session:
 
-        return redirect(
-            "/login-page"
-        )
-
-    pdf_path = os.path.join(
-        "reports",
-        f"scan_report_{scan_id}.pdf"
-    )
-
-    if not os.path.exists(
-        pdf_path
-    ):
-
         return jsonify({
-            "error": "PDF report not found"
-        }), 404
-
-    return send_file(
-        pdf_path,
-        as_attachment=False
-    )
-
-
-# ============================================================
-# EMAIL REPORT
-# ============================================================
-
-@app.route(
-    "/email-report",
-    methods=["POST"]
-)
-def email_report():
-
-    if "user_id" not in session:
-
-        return jsonify({
-            "error": "Please login before sending email"
+            "error": "Please login before downloading reports"
         }), 401
+
 
     try:
 
-        data = request.get_json(
-            silent=True
+        pdf_path = (
+            f"reports/scan_report_{scan_id}.pdf"
         )
 
-        if not data:
-
-            return jsonify({
-                "error": "Invalid or missing JSON data"
-            }), 400
-
-        scan_id = data.get(
-            "scan_id"
-        )
-
-        receiver_email = data.get(
-            "email"
-        )
-
-        if not scan_id:
-
-            return jsonify({
-                "error": "Scan ID is required"
-            }), 400
-
-        if not receiver_email:
-
-            return jsonify({
-                "error": "Receiver email is required"
-            }), 400
-
-        if not re.match(
-            r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$",
-            receiver_email
-        ):
-
-            return jsonify({
-                "error": "Invalid email address"
-            }), 400
-
-        pdf_path = os.path.join(
-            "reports",
-            f"scan_report_{scan_id}.pdf"
-        )
 
         if not os.path.exists(
             pdf_path
         ):
 
             return jsonify({
-                "error": "PDF report not found"
+
+                "error": "Report not found"
+
             }), 404
 
-        print(
-            "========================================"
+
+        return send_file(
+
+            pdf_path,
+
+            as_attachment=True,
+
+            download_name=(
+                f"scan_report_{scan_id}.pdf"
+            )
+
         )
 
-        print(
-            "EMAIL REPORT"
-        )
-
-        print(
-            "Receiver:",
-            receiver_email
-        )
-
-        print(
-            "PDF:",
-            pdf_path
-        )
-
-        print(
-            "========================================"
-        )
-
-        send_report_email(
-            receiver_email,
-            pdf_path
-        )
-
-        print(
-            "EMAIL SENT SUCCESSFULLY"
-        )
-
-        return jsonify({
-
-            "status": "success",
-
-            "message": "Report sent successfully"
-
-        }), 200
 
     except Exception as e:
 
-        print(
-            "========================================"
-        )
-
-        print(
-            "EMAIL REPORT ERROR"
-        )
-
-        print(
-            type(e).__name__
-        )
-
-        print(
-            str(e)
-        )
-
-        print(
-            "========================================"
-        )
-
         return jsonify({
+
             "error": str(e)
+
         }), 500
 
 
 # ============================================================
-# START APPLICATION
+# START SERVER
 # ============================================================
 
 if __name__ == "__main__":
-
     app.run(
-        debug=True
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        debug=False
     )

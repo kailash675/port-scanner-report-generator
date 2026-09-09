@@ -1,23 +1,43 @@
+import os
 import subprocess
 import xml.etree.ElementTree as ET
 
 
+NMAP_PATH = r"C:\Program Files (x86)\Nmap\nmap.exe"
+
+
+def get_nmap_path():
+
+    if os.path.isfile(NMAP_PATH):
+        return NMAP_PATH
+
+    raise FileNotFoundError(
+        f"Nmap not found at: {NMAP_PATH}"
+    )
+
+
 def scan_target(target, scan_type="tcp"):
-    """
-    Scan a target using either TCP or UDP.
-    """
+
+    target = target.strip()
+
+    if not target:
+        raise ValueError("Target cannot be empty")
 
     scan_type = scan_type.lower()
+
+    nmap = get_nmap_path()
+
 
     if scan_type == "tcp":
 
         command = [
-            "nmap",
+            nmap,
             "-sT",
-            "-sV",
-            "-T4",
+            "-Pn",
+            "-T3",
             "-p",
             "1-10000",
+            "-sV",
             "-oX",
             "-",
             target
@@ -26,12 +46,13 @@ def scan_target(target, scan_type="tcp"):
     elif scan_type == "udp":
 
         command = [
-            "nmap",
+            nmap,
             "-sU",
-            "-sV",
-            "-T4",
+            "-Pn",
+            "-T3",
             "--top-ports",
             "100",
+            "-sV",
             "-oX",
             "-",
             target
@@ -43,6 +64,7 @@ def scan_target(target, scan_type="tcp"):
             "Scan type must be TCP or UDP"
         )
 
+
     try:
 
         result = subprocess.run(
@@ -52,73 +74,80 @@ def scan_target(target, scan_type="tcp"):
             timeout=300
         )
 
+
         if result.returncode != 0:
 
-            raise RuntimeError(
+            error_message = (
                 result.stderr.strip()
+                or result.stdout.strip()
                 or "Nmap scan failed"
             )
+
+            raise RuntimeError(error_message)
+
 
         return parse_nmap_xml(
             result.stdout,
             scan_type.upper()
         )
 
+
     except subprocess.TimeoutExpired:
 
         raise RuntimeError(
-            f"{scan_type.upper()} scan timed out"
+            f"{scan_type.upper()} scan timed out after 5 minutes"
         )
 
 
 def parse_nmap_xml(xml_output, protocol):
-    """
-    Parse Nmap XML output and return open/open|filtered ports.
-    """
 
     results = []
 
     if not xml_output.strip():
-
         return results
+
 
     try:
 
         root = ET.fromstring(xml_output)
+
 
         for host in root.findall("host"):
 
             ports_element = host.find("ports")
 
             if ports_element is None:
-
                 continue
+
 
             for port in ports_element.findall("port"):
 
                 state = port.find("state")
 
                 if state is None:
-
                     continue
+
 
                 port_state = state.get(
                     "state",
                     ""
                 )
 
+
                 if port_state not in [
                     "open",
                     "open|filtered"
                 ]:
-
                     continue
 
+
                 service = port.find("service")
+
 
                 service_name = "unknown"
                 product = ""
                 version = ""
+
 
                 if service is not None:
 
@@ -136,6 +165,7 @@ def parse_nmap_xml(xml_output, protocol):
                         "version",
                         ""
                     )
+
 
                 results.append({
 
@@ -155,7 +185,9 @@ def parse_nmap_xml(xml_output, protocol):
 
                 })
 
+
         return results
+
 
     except ET.ParseError:
 
@@ -168,18 +200,23 @@ def scan_multiple_targets(
     targets,
     scan_type="tcp"
 ):
-    """
-    Scan multiple targets using the selected protocol.
-    """
 
     all_results = []
 
+
     for target in targets:
+
+        target = target.strip()
+
+        if not target:
+            continue
+
 
         results = scan_target(
             target,
             scan_type
         )
+
 
         all_results.append({
 
@@ -188,5 +225,6 @@ def scan_multiple_targets(
             "results": results
 
         })
+
 
     return all_results

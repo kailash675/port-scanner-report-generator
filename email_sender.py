@@ -2,21 +2,22 @@ import os
 import smtplib
 
 from email.message import EmailMessage
+from dotenv import load_dotenv
 
 
-def send_report_email(
-    receiver_email,
-    pdf_path
-):
+# Load .env file
+load_dotenv()
 
-    sender_email = os.getenv(
-        "REPORT_EMAIL"
-    )
 
-    sender_password = os.getenv(
-        "REPORT_EMAIL_PASSWORD"
-    )
+def send_report_email(receiver_email, pdf_path):
 
+    # Sender Gmail
+    sender_email = os.getenv("REPORT_EMAIL")
+
+    # Gmail App Password
+    sender_password = os.getenv("REPORT_EMAIL_PASSWORD")
+
+    # SMTP settings
     smtp_server = os.getenv(
         "SMTP_SERVER",
         "smtp.gmail.com"
@@ -30,50 +31,76 @@ def send_report_email(
     )
 
 
+    # Check sender email
     if not sender_email:
+
         raise ValueError(
-            "REPORT_EMAIL is not configured"
+            "Sender Gmail is not configured. "
+            "Please set REPORT_EMAIL in .env"
         )
 
 
+    # Check app password
     if not sender_password:
+
         raise ValueError(
-            "REPORT_EMAIL_PASSWORD is not configured"
+            "Gmail App Password is not configured. "
+            "Please set REPORT_EMAIL_PASSWORD in .env"
         )
 
 
+    # Check receiver
+    if not receiver_email:
+
+        raise ValueError(
+            "Receiver email address is required"
+        )
+
+
+    # Check PDF
     if not os.path.exists(pdf_path):
+
         raise FileNotFoundError(
-            "PDF report not found"
+            f"PDF report not found: {pdf_path}"
         )
 
 
+    # Create email
     message = EmailMessage()
 
+
     message["Subject"] = (
-        "Port Scanner Security Report"
+        "SecureScan - Network Security Report"
     )
 
     message["From"] = sender_email
 
     message["To"] = receiver_email
 
+
+    # Email body
     message.set_content(
-        """
-Hello,
+        """Hello,
 
-Please find the Port Scanner Security Report attached.
+Please find the SecureScan Network Security Report attached.
 
-This report contains the scan results,
-open ports, detected services,
-CVE information and security recommendations.
+This report contains:
+
+- Network scan results
+- Open ports
+- Detected services
+- CVE information
+- Security recommendations
+- Scan duration
 
 Regards,
-Port Scanner Report Generator
+SecureScan
+Network Security Assessment Tool
 """
     )
 
 
+    # Attach PDF
     with open(
         pdf_path,
         "rb"
@@ -92,20 +119,42 @@ Port Scanner Report Generator
     )
 
 
-    with smtplib.SMTP(
-        smtp_server,
-        smtp_port
-    ) as server:
+    # Connect to Gmail SMTP
+    try:
 
-        server.starttls()
+        with smtplib.SMTP(
+            smtp_server,
+            smtp_port
+        ) as server:
 
-        server.login(
-            sender_email,
-            sender_password
+            server.ehlo()
+
+            server.starttls()
+
+            server.ehlo()
+
+            server.login(
+                sender_email,
+                sender_password
+            )
+
+            server.send_message(
+                message
+            )
+
+
+    except smtplib.SMTPAuthenticationError:
+
+        raise ValueError(
+            "Gmail authentication failed. "
+            "Check REPORT_EMAIL and use a Gmail App Password."
         )
 
-        server.send_message(
-            message
+
+    except smtplib.SMTPException as error:
+
+        raise RuntimeError(
+            f"Email sending failed: {error}"
         )
 
 

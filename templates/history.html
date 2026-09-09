@@ -1,1327 +1,2653 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
+ 
 
 <head>
 
+ 
+
     <meta charset="UTF-8">
 
+ 
+
     <meta name="viewport"
+
           content="width=device-width, initial-scale=1.0">
+
+ 
 
     <title>SecureScan - Scan History</title>
 
+ 
+
     <link rel="stylesheet"
+
           href="{{ url_for('static', filename='style.css') }}">
+
+ 
 
     <style>
 
+ 
+
         /* ==============================
+
            GLOBAL
+
         ============================== */
+
+ 
 
         * {
+
             box-sizing: border-box;
+
         }
+
+ 
 
         html {
+
             scroll-behavior: smooth;
+
         }
+
+ 
 
         body {
+
             margin: 0;
+
             padding: 0;
 
+ 
+
             min-height: 100vh;
+
+ 
 
             background: #080f1c;
+
             color: #e5e7eb;
 
+ 
+
             font-family:
+
                 Arial,
+
                 Helvetica,
+
                 sans-serif;
 
+ 
+
             overflow-x: hidden;
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            LAYOUT
+
         ============================== */
+
+ 
 
         .history-layout {
+
             width: 100%;
+
             min-height: 100vh;
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            SIDEBAR
+
         ============================== */
+
+ 
 
         .history-sidebar {
 
+ 
+
             position: fixed;
 
+ 
+
             top: 0;
+
             left: 0;
 
+ 
+
             width: 270px;
+
             height: 100vh;
+
+ 
 
             padding: 25px 17px;
 
+ 
+
             background: #091220;
 
+ 
+
             border-right:
+
                 1px solid #1e293b;
 
+ 
+
             display: flex;
+
             flex-direction: column;
+
+ 
 
             z-index: 1000;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            BRAND
+
         ============================== */
+
+ 
 
         .brand {
 
+ 
+
             display: flex;
 
+ 
+
             align-items: center;
+
+ 
 
             gap: 13px;
 
+ 
+
             padding:
+
                 5px 9px 25px;
+
+ 
 
             margin-bottom: 28px;
 
+ 
+
             border-bottom:
+
                 1px solid #1e293b;
+
+ 
 
         }
 
+ 
+
+ 
 
         .brand-icon {
 
+ 
+
             width: 45px;
+
             height: 45px;
+
+ 
 
             display: flex;
 
+ 
+
             align-items: center;
+
             justify-content: center;
+
+ 
 
             background: #102542;
 
+ 
+
             border:
+
                 1px solid #1c395b;
 
+ 
+
             border-radius: 10px;
+
+ 
 
             font-size: 23px;
 
+ 
+
         }
 
+ 
+
+ 
 
         .brand-text strong {
 
+ 
+
             display: block;
+
+ 
 
             color: #f8fafc;
 
+ 
+
             font-size: 17px;
+
+ 
 
             font-weight: 700;
 
+ 
+
             letter-spacing: 1.2px;
+
+ 
 
         }
 
+ 
+
+ 
 
         .brand-text span {
 
+ 
+
             display: block;
+
+ 
 
             margin-top: 4px;
 
+ 
+
             color: #64748b;
 
+ 
+
             font-size: 9px;
+
+ 
 
             letter-spacing: 1.2px;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            MENU TITLE
+
         ============================== */
+
+ 
 
         .menu-title {
 
+ 
+
             padding:
+
                 0 12px 11px;
+
+ 
 
             color: #475569;
 
+ 
+
             font-size: 10px;
 
+ 
+
             font-weight: 700;
+
+ 
 
             letter-spacing: 1.5px;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            NAVIGATION
+
         ============================== */
+
+ 
 
         .nav-link {
 
+ 
+
             width: 100%;
+
+ 
 
             min-height: 45px;
 
+ 
+
             display: flex;
 
+ 
+
             align-items: center;
+
+ 
 
             gap: 14px;
 
+ 
+
             padding: 0 14px;
+
+ 
 
             margin-bottom: 6px;
 
+ 
+
             border:
+
                 1px solid transparent;
+
+ 
 
             border-radius: 8px;
 
+ 
+
             background: transparent;
+
+ 
 
             color: #94a3b8;
 
+ 
+
             font-size: 13px;
+
+ 
 
             text-decoration: none;
 
+ 
+
             transition:
+
                 all 0.2s ease;
+
+ 
 
         }
 
+ 
+
+ 
 
         .nav-link:hover {
 
+ 
+
             background: #111f34;
+
+ 
 
             color: #e2e8f0;
 
+ 
+
         }
 
+ 
+
+ 
 
         .nav-link.active {
 
+ 
+
             background: #142f55;
+
+ 
 
             border-color: #1d4169;
 
+ 
+
             color: #60a5fa;
+
+ 
 
         }
 
+ 
+
+ 
 
         .nav-icon {
 
+ 
+
             width: 20px;
 
+ 
+
             text-align: center;
+
+ 
 
             font-size: 15px;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            SIDEBAR BOTTOM
+
         ============================== */
+
+ 
 
         .sidebar-bottom {
 
+ 
+
             margin-top: auto;
+
+ 
 
             padding-top: 20px;
 
+ 
+
             border-top:
+
                 1px solid #1e293b;
+
+ 
 
         }
 
+ 
+
+ 
 
         .user-info {
 
+ 
+
             padding:
+
                 5px 10px 12px;
+
+ 
 
             color: #475569;
 
+ 
+
             font-size: 10px;
+
+ 
 
         }
 
+ 
+
+ 
 
         .user-info strong {
 
+ 
+
             display: block;
+
+ 
 
             margin-top: 4px;
 
+ 
+
             color: #cbd5e1;
+
+ 
 
             font-size: 12px;
 
+ 
+
             font-weight: 600;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            LOGOUT
+
         ============================== */
+
+ 
 
         .logout-btn {
 
+ 
+
             width: 100%;
+
+ 
 
             height: 40px;
 
+ 
+
             background: #111827;
 
+ 
+
             border:
+
                 1px solid #334155;
+
+ 
 
             border-radius: 7px;
 
+ 
+
             color: #94a3b8;
+
+ 
 
             font-size: 12px;
 
+ 
+
             font-weight: 600;
+
+ 
 
             cursor: pointer;
 
+ 
+
             transition:
+
                 all 0.2s ease;
+
+ 
 
         }
 
+ 
+
+ 
 
         .logout-btn:hover {
 
+ 
+
             background: #1a1115;
+
+ 
 
             border-color: #7f1d1d;
 
+ 
+
             color: #f87171;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            MAIN CONTENT
+
         ============================== */
+
+ 
 
         .history-main {
 
+ 
+
             margin-left: 270px;
 
+ 
+
             width:
+
                 calc(100% - 270px);
+
+ 
 
             min-height: 100vh;
 
+ 
+
             padding:
+
                 30px 45px 50px;
+
+ 
 
             background: #080f1c;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            HEADER
+
         ============================== */
+
+ 
 
         .top-header {
 
+ 
+
             display: flex;
 
+ 
+
             justify-content:
+
                 space-between;
 
+ 
+
             align-items:
+
                 flex-start;
+
+ 
 
             margin-bottom: 30px;
 
+ 
+
         }
 
+ 
+
+ 
 
         .top-header h1 {
 
+ 
+
             margin: 0;
+
+ 
 
             color: #f1f5f9;
 
+ 
+
             font-size: 30px;
 
+ 
+
             font-weight: 600;
+
+ 
 
             letter-spacing: -0.5px;
 
+ 
+
         }
 
+ 
+
+ 
 
         .top-header p {
 
+ 
+
             margin:
+
                 8px 0 0;
+
+ 
 
             color: #64748b;
 
+ 
+
             font-size: 13px;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            SYSTEM STATUS
+
         ============================== */
+
+ 
 
         .system-status {
 
+ 
+
             display: flex;
+
+ 
 
             align-items: center;
 
+ 
+
             gap: 8px;
+
+ 
 
             padding-top: 7px;
 
+ 
+
             color: #4ade80;
+
+ 
 
             font-size: 12px;
 
+ 
+
             font-weight: 600;
+
+ 
 
         }
 
+ 
+
+ 
 
         .status-dot {
 
+ 
+
             width: 8px;
+
             height: 8px;
+
+ 
 
             background: #22c55e;
 
+ 
+
             border-radius: 50%;
 
+ 
+
             box-shadow:
+
                 0 0 10px
+
                 rgba(
+
                     34,
+
                     197,
+
                     94,
+
                     0.6
+
                 );
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            HISTORY CARD
+
         ============================== */
+
+ 
 
         .history-card {
 
+ 
+
             width: 100%;
+
+ 
 
             background: #0d1726;
 
+ 
+
             border:
+
                 1px solid #1e293b;
+
+ 
 
             border-radius: 10px;
 
+ 
+
             overflow: hidden;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            CARD HEADER
+
         ============================== */
+
+ 
 
         .card-header {
 
+ 
+
             padding:
+
                 21px 24px;
 
+ 
+
             border-bottom:
+
                 1px solid #1e293b;
+
+ 
 
         }
 
+ 
+
+ 
 
         .card-label {
 
+ 
+
             margin-bottom: 9px;
+
+ 
 
             color: #38bdf8;
 
+ 
+
             font-size: 10px;
 
+ 
+
             font-weight: 700;
+
+ 
 
             letter-spacing: 1.7px;
 
+ 
+
         }
 
+ 
+
+ 
 
         .card-header h2 {
 
+ 
+
             margin: 0;
 
+ 
+
             color: #e2e8f0;
+
+ 
 
             font-size: 19px;
 
+ 
+
             font-weight: 600;
+
+ 
 
         }
 
+ 
+
+ 
 
         .card-header p {
 
+ 
+
             margin:
+
                 7px 0 0;
+
+ 
 
             color: #64748b;
 
+ 
+
             font-size: 11px;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            COUNT
+
         ============================== */
+
+ 
 
         .history-count {
 
+ 
+
             padding:
+
                 16px 24px;
 
+ 
+
             border-bottom:
+
                 1px solid #1e293b;
+
+ 
 
             color: #94a3b8;
 
+ 
+
             font-size: 12px;
+
+ 
 
         }
 
+ 
+
+ 
 
         .history-count strong {
 
+ 
+
             color: #e2e8f0;
+
+ 
 
             font-size: 13px;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            TABLE
+
         ============================== */
+
+ 
 
         .table-wrapper {
 
+ 
+
             width: 100%;
 
+ 
+
             padding:
+
                 0 24px 24px;
+
+ 
 
             overflow-x: auto;
 
+ 
+
         }
 
+ 
+
+ 
 
         table {
 
+ 
+
             width: 100%;
+
+ 
 
             min-width: 720px;
 
+ 
+
             border-collapse:
+
                 collapse;
+
+ 
 
         }
 
+ 
+
+ 
 
         thead {
 
+ 
+
             background: #080d17;
+
+ 
 
         }
 
+ 
+
+ 
 
         th {
 
+ 
+
             padding:
+
                 13px 12px;
 
+ 
+
             border-bottom:
+
                 1px solid #1e293b;
+
+ 
 
             color: #64748b;
 
+ 
+
             font-size: 9px;
+
+ 
 
             font-weight: 700;
 
+ 
+
             text-align: left;
 
+ 
+
             text-transform:
+
                 uppercase;
+
+ 
 
             letter-spacing: 0.7px;
 
+ 
+
         }
 
+ 
+
+ 
 
         td {
 
+ 
+
             padding:
+
                 14px 12px;
 
+ 
+
             border-bottom:
+
                 1px solid #151f2e;
+
+ 
 
             color: #94a3b8;
 
+ 
+
             font-size: 11px;
+
+ 
 
             vertical-align: middle;
 
+ 
+
         }
 
+ 
+
+ 
 
         tbody tr {
 
+ 
+
             transition:
+
                 background 0.2s ease;
+
+ 
 
         }
 
+ 
+
+ 
 
         tbody tr:hover {
 
+ 
+
             background: #0f1928;
+
+ 
 
         }
 
+ 
+
+ 
 
         tbody tr:hover td {
 
+ 
+
             background: #0f1928;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            ID
+
         ============================== */
+
+ 
 
         .scan-id {
 
+ 
+
             color: #e2e8f0;
+
+ 
 
             font-weight: 600;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            TARGET
+
         ============================== */
+
+ 
 
         .target-name {
 
+ 
+
             color: #93c5fd;
+
+ 
 
             font-weight: 600;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            PORT BADGE
+
         ============================== */
+
+ 
 
         .port-badge {
 
+ 
+
             display: inline-block;
 
+ 
+
             padding:
+
                 4px 9px;
+
+ 
 
             background: #102718;
 
+ 
+
             border:
+
                 1px solid #1e5130;
+
+ 
 
             border-radius: 20px;
 
+ 
+
             color: #4ade80;
+
+ 
 
             font-size: 9px;
 
+ 
+
             font-weight: 600;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            VIEW REPORT BUTTON
+
         ============================== */
+
+ 
 
         .view-button {
 
+ 
+
             display: inline-block;
 
+ 
+
             padding:
+
                 7px 11px;
+
+ 
 
             background: #172033;
 
+ 
+
             border:
+
                 1px solid #263b5a;
+
+ 
 
             border-radius: 6px;
 
+ 
+
             color: #93c5fd;
+
+ 
 
             font-size: 10px;
 
+ 
+
             font-weight: 600;
+
+ 
 
             text-decoration: none;
 
+ 
+
             transition:
+
                 all 0.2s ease;
+
+ 
 
         }
 
+ 
+
+ 
 
         .view-button:hover {
 
+ 
+
             background: #1d2b43;
+
+ 
 
             border-color: #365578;
 
+ 
+
             color: #bfdbfe;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            EMPTY HISTORY
+
         ============================== */
+
+ 
 
         .empty-history {
 
+ 
+
             padding:
+
                 60px 20px;
 
+ 
+
             text-align: center;
+
+ 
 
             color: #64748b;
 
+ 
+
             font-size: 12px;
+
+ 
 
         }
 
+ 
+
+ 
 
         .empty-history-icon {
 
+ 
+
             font-size: 32px;
+
+ 
 
             margin-bottom: 12px;
 
+ 
+
             opacity: 0.6;
+
+ 
 
         }
 
+ 
+
+ 
 
         /* ==============================
+
            FOOTER
+
         ============================== */
+
+ 
 
         .footer {
 
+ 
+
             margin-top: 20px;
+
+ 
 
             color: #334155;
 
+ 
+
             font-size: 9px;
+
+ 
 
             text-align: center;
 
+ 
+
         }
 
+ 
+
+ 
 
         /* ==============================
+
            RESPONSIVE
+
         ============================== */
+
+ 
 
         @media (max-width: 900px) {
 
+ 
+
             .history-sidebar {
+
+ 
 
                 width: 230px;
 
+ 
+
             }
 
+ 
+
             .history-main {
+
+ 
 
                 margin-left: 230px;
 
+ 
+
                 width:
+
                     calc(100% - 230px);
 
+ 
+
                 padding:
+
                     25px 25px 40px;
+
+ 
 
             }
 
+ 
+
         }
 
+ 
+
+ 
 
         @media (max-width: 700px) {
 
+ 
+
             .history-layout {
+
+ 
 
                 display: block;
 
+ 
+
             }
 
+ 
+
+ 
 
             .history-sidebar {
 
+ 
+
                 position: relative;
 
+ 
+
                 width: 100%;
+
+ 
 
                 height: auto;
 
+ 
+
                 min-height: auto;
+
+ 
 
             }
 
+ 
+
+ 
 
             .history-main {
 
+ 
+
                 margin-left: 0;
+
+ 
 
                 width: 100%;
 
+ 
+
                 padding:
+
                     22px 18px 40px;
+
+ 
 
             }
 
+ 
+
+ 
 
             .top-header {
 
+ 
+
                 flex-direction: column;
+
+ 
 
                 gap: 12px;
 
+ 
+
             }
 
+ 
+
+ 
 
             .top-header h1 {
 
+ 
+
                 font-size: 25px;
+
+ 
 
             }
 
+ 
+
         }
+
+ 
 
     </style>
 
+ 
+
 </head>
 
+ 
+
+ 
 
 <body>
 
+ 
+
+ 
 
 <div class="history-layout">
 
+ 
+
+ 
 
     <!-- ==========================================
+
          SIDEBAR
+
     =========================================== -->
+
+ 
 
     <aside class="history-sidebar">
 
+ 
+
+ 
 
         <!-- BRAND -->
 
+ 
+
         <div class="brand">
 
+ 
+
             <div class="brand-icon">
+
                 🛡️
+
             </div>
 
+ 
+
+ 
 
             <div class="brand-text">
 
+ 
+
                 <strong>
+
                     SECURESCAN
+
                 </strong>
 
+ 
+
                 <span>
+
                     PORT SECURITY TOOL
+
                 </span>
+
+ 
 
             </div>
 
+ 
+
         </div>
 
+ 
+
+ 
 
         <!-- MENU -->
 
+ 
+
         <div class="menu-title">
+
             MAIN MENU
+
         </div>
 
+ 
+
+ 
 
         <a
-            href="/"
+
+            href="/#dashboard"
+
             class="nav-link">
 
+ 
+
             <span class="nav-icon">
+
                 ▦
+
             </span>
 
+ 
+
             <span>
+
                 Dashboard
+
             </span>
+
+ 
 
         </a>
 
+ 
+
+ 
 
         <a
-            href="/#scanSection"
+
+            href="/#scan"
+
             class="nav-link">
 
+ 
+
             <span class="nav-icon">
+
                 ⌕
+
             </span>
 
+ 
+
             <span>
+
                 Port Scanner
+
             </span>
+
+ 
 
         </a>
 
+ 
+
+ 
 
         <a
+
             href="/history"
+
             class="nav-link active">
 
+ 
+
             <span class="nav-icon">
+
                 ◷
+
             </span>
 
+ 
+
             <span>
+
                 Scan History
+
             </span>
+
+ 
 
         </a>
 
+ 
+
+ 
 
         <a
-            href="/#pcapSection"
+
+            href="/#pcap"
+
             class="nav-link">
 
+ 
+
             <span class="nav-icon">
+
                 ⌁
+
             </span>
 
+ 
+
             <span>
+
                 PCAP Analyzer
+
             </span>
+
+ 
 
         </a>
 
+ 
+
+ 
 
         <a
-            href="/#settingsSection"
+
+            href="/#settings"
+
             class="nav-link">
 
+ 
+
             <span class="nav-icon">
+
                 ⚙
+
             </span>
 
+ 
+
             <span>
+
                 Settings
+
             </span>
+
+ 
 
         </a>
 
+ 
+
+ 
 
         <!-- SIDEBAR BOTTOM -->
 
+ 
+
         <div class="sidebar-bottom">
 
+ 
+
+ 
 
             <div class="user-info">
 
+ 
+
                 Logged in as
 
+ 
+
                 <strong>
+
                     {{ session.get("username", "User") }}
+
                 </strong>
+
+ 
 
             </div>
 
+ 
+
+ 
 
             <button
+
                 type="button"
+
                 class="logout-btn"
+
                 onclick="logoutUser()">
+
+ 
 
                 Logout
 
+ 
+
             </button>
 
+ 
+
+ 
 
         </div>
 
+ 
+
+ 
 
     </aside>
 
+ 
+
+ 
 
     <!-- ==========================================
+
          MAIN
+
     =========================================== -->
+
+ 
 
     <main class="history-main">
 
+ 
+
+ 
 
         <!-- HEADER -->
 
+ 
+
         <header class="top-header">
 
+ 
+
+ 
 
             <div>
 
+ 
+
                 <h1>
+
                     Scan History
+
                 </h1>
 
+ 
+
                 <p>
+
                     View your previous network security scans
+
                 </p>
+
+ 
 
             </div>
 
+ 
+
+ 
 
             <div class="system-status">
 
+ 
+
                 <span class="status-dot"></span>
+
+ 
 
                 System Online
 
+ 
+
             </div>
 
+ 
+
+ 
 
         </header>
 
+ 
+
+ 
 
         <!-- ======================================
+
              HISTORY CARD
+
         ======================================= -->
+
+ 
 
         <section class="history-card">
 
+ 
+
+ 
 
             <div class="card-header">
 
+ 
+
                 <div class="card-label">
+
                     SECURITY ACTIVITY
+
                 </div>
 
+ 
+
+ 
 
                 <h2>
+
                     Previous Scans
+
                 </h2>
 
+ 
+
+ 
 
                 <p>
+
                     Review targets and security reports
+
                     generated by SecureScan.
+
                 </p>
+
+ 
 
             </div>
 
+ 
+
+ 
 
             <!-- COUNT -->
 
+ 
+
             <div class="history-count">
+
+ 
 
                 Total scans:
 
+ 
+
                 <strong>
+
                     {{ history|length }}
+
                 </strong>
+
+ 
 
             </div>
 
+ 
+
+ 
 
             <!-- ==================================
+
                  HISTORY AVAILABLE
+
             =================================== -->
+
+ 
 
             {% if history %}
 
+ 
+
+ 
 
             <div class="table-wrapper">
 
+ 
+
+ 
 
                 <table>
 
+ 
+
+ 
 
                     <thead>
 
+ 
+
                         <tr>
 
+ 
+
                             <th>
+
                                 Scan ID
+
                             </th>
 
+ 
+
                             <th>
+
                                 Scan Date
+
                             </th>
 
+ 
+
                             <th>
+
                                 Target
+
                             </th>
 
+ 
+
                             <th>
+
                                 Open Ports
+
                             </th>
 
+ 
+
                             <th>
+
                                 Report
+
                             </th>
+
+ 
 
                         </tr>
+
+ 
 
                     </thead>
 
+ 
+
+ 
 
                     <tbody>
 
+ 
+
+ 
 
                     {% for scan in history %}
 
+ 
+
+ 
 
                         <tr>
 
+ 
+
+ 
 
                             <!-- ID -->
 
+ 
+
                             <td class="scan-id">
+
+ 
 
                                 #{{ scan[0] }}
 
+ 
+
                             </td>
 
+ 
+
+ 
 
                             <!-- DATE -->
 
+ 
+
                             <td>
+
+ 
 
                                 {{ scan[1] }}
 
+ 
+
                             </td>
 
+ 
+
+ 
 
                             <!-- TARGET -->
 
+ 
+
                             <td class="target-name">
+
+ 
 
                                 {{ scan[2] }}
 
+ 
+
                             </td>
 
+ 
+
+ 
 
                             <!-- PORTS -->
 
+ 
+
                             <td>
 
+ 
+
                                 <span
+
                                     class="port-badge">
 
+ 
+
                                     {{ scan[3] }}
+
                                     ports
+
+ 
 
                                 </span>
 
+ 
+
                             </td>
 
+ 
+
+ 
 
                             <!-- REPORT -->
 
+ 
+
                             <td>
 
+ 
+
                                 <a
+
                                     href="/report/{{ scan[0] }}"
+
                                     target="_blank"
+
                                     class="view-button">
+
+ 
 
                                     View PDF
 
+ 
+
                                 </a>
+
+ 
 
                             </td>
 
+ 
+
+ 
 
                         </tr>
 
+ 
+
+ 
 
                     {% endfor %}
 
+ 
+
+ 
 
                     </tbody>
 
+ 
+
+ 
 
                 </table>
 
+ 
+
+ 
 
             </div>
 
+ 
+
+ 
 
             {% else %}
 
+ 
+
+ 
 
             <!-- ==================================
+
                  EMPTY
+
             =================================== -->
+
+ 
 
             <div class="empty-history">
 
+ 
+
                 <div class="empty-history-icon">
+
                     ◷
+
                 </div>
+
+ 
 
                 No scan history available yet.
 
+ 
+
             </div>
 
+ 
+
+ 
 
             {% endif %}
 
+ 
+
+ 
 
         </section>
 
+ 
+
+ 
 
         <!-- FOOTER -->
 
+ 
+
         <div class="footer">
+
+ 
 
             SecureScan • Network Security Assessment Tool
 
+ 
+
         </div>
 
+ 
+
+ 
 
     </main>
 
+ 
+
+ 
 
 </div>
 
+ 
+
+ 
 
 <script>
 
+ 
+
+ 
 
 /* ==========================================
+
    LOGOUT
+
 ========================================== */
+
+ 
 
 async function logoutUser() {
 
+ 
+
+ 
 
     try {
 
+ 
+
+ 
 
         const response =
+
             await fetch(
+
                 "/logout",
+
                 {
+
                     method: "POST"
+
                 }
+
             );
 
+ 
+
+ 
 
         if (response.ok) {
 
+ 
+
+ 
 
             window.location.href =
+
                 "/login-page";
 
+ 
+
+ 
 
         } else {
 
+ 
+
+ 
 
             alert(
+
                 "Logout failed."
+
             );
 
+ 
+
+ 
 
         }
 
+ 
+
+ 
 
     } catch (error) {
 
+ 
+
+ 
 
         console.error(error);
 
+ 
+
+ 
 
         alert(
+
             "Logout failed."
+
         );
 
+ 
+
+ 
 
     }
 
+ 
+
+ 
 
 }
 
+ 
+
+ 
 
 </script>
 
+ 
+
+ 
 
 </body>
+
+ 
 
 </html>
