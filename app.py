@@ -820,7 +820,7 @@ def pcap_analyze():
 
 
 # ============================================================
-# HISTORY
+# HISTORY PAGE
 # ============================================================
 
 @app.route(
@@ -828,6 +828,42 @@ def pcap_analyze():
     methods=["GET"]
 )
 def history():
+
+    if "user_id" not in session:
+        return redirect("/login-page")
+
+    try:
+
+        scans = get_scan_history()
+
+        return render_template(
+            "history.html",
+            history=scans
+        )
+
+    except Exception as e:
+
+        print(
+            "History error:",
+            repr(e)
+        )
+
+        return render_template(
+            "history.html",
+            history=[],
+            error=str(e)
+        )
+
+
+# ============================================================
+# HISTORY API
+# ============================================================
+
+@app.route(
+    "/api/history",
+    methods=["GET"]
+)
+def api_history():
 
     if "user_id" not in session:
 
@@ -842,14 +878,13 @@ def history():
 
         return jsonify({
             "status": "success",
-            "history":
-                scans
+            "history": scans
         })
 
     except Exception as e:
 
         print(
-            "History error:",
+            "History API error:",
             repr(e)
         )
 
@@ -857,7 +892,6 @@ def history():
             "error":
                 str(e)
         }), 500
-
 
 # ============================================================
 # EMAIL REPORT
