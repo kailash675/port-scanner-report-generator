@@ -1,4 +1,12 @@
-from flask import Flask, request, jsonify, render_template, send_file, session, redirect
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    send_file,
+    session
+)
+
 from werkzeug.utils import secure_filename
 
 import re
@@ -22,11 +30,21 @@ from database.database import (
     supabase
 )
 
-from analyzer.recommendations import generate_recommendations
-from analyzer.cve_lookup import lookup_cves
+from analyzer.recommendations import (
+    generate_recommendations
+)
 
-from reports.report_generator import generate_pdf
-from email_sender import send_report_email
+from analyzer.cve_lookup import (
+    lookup_cves
+)
+
+from reports.report_generator import (
+    generate_pdf
+)
+
+from email_sender import (
+    send_report_email
+)
 
 
 # ============================================================
@@ -47,7 +65,9 @@ os.makedirs(
     exist_ok=True
 )
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config[
+    "UPLOAD_FOLDER"
+] = UPLOAD_FOLDER
 
 create_tables()
 
@@ -58,7 +78,10 @@ create_tables()
 
 def is_valid_target(target):
 
-    if not isinstance(target, str):
+    if not isinstance(
+        target,
+        str
+    ):
         return False
 
     if len(target) > 253:
@@ -66,20 +89,27 @@ def is_valid_target(target):
 
     pattern = r"^[a-zA-Z0-9.-]+$"
 
-    if not re.match(pattern, target):
+    if not re.match(
+        pattern,
+        target
+    ):
         return False
 
-    if target.startswith((".", "-")):
+    if target.startswith(
+        (".", "-")
+    ):
         return False
 
-    if target.endswith((".", "-")):
+    if target.endswith(
+        (".", "-")
+    ):
         return False
 
     return True
 
 
 # ============================================================
-# GET SCAN DATE FROM SUPABASE
+# GET SCAN DATE
 # ============================================================
 
 def get_scan_date(scan_id):
@@ -96,6 +126,7 @@ def get_scan_date(scan_id):
         )
 
         if response.data:
+
             return response.data[0].get(
                 "scan_date",
                 ""
@@ -117,7 +148,9 @@ def get_scan_date(scan_id):
 # CVE INFORMATION
 # ============================================================
 
-def add_cve_information(results):
+def add_cve_information(
+    results
+):
 
     updated_results = []
 
@@ -153,9 +186,13 @@ def add_cve_information(results):
 
                 cves = []
 
-        result_copy = dict(result)
+        result_copy = dict(
+            result
+        )
 
-        result_copy["cves"] = cves
+        result_copy[
+            "cves"
+        ] = cves
 
         updated_results.append(
             result_copy
@@ -168,7 +205,9 @@ def add_cve_information(results):
 # PAGES
 # ============================================================
 
-@app.route("/login-page")
+@app.route(
+    "/login-page"
+)
 def login_page():
 
     return render_template(
@@ -176,7 +215,9 @@ def login_page():
     )
 
 
-@app.route("/register-page")
+@app.route(
+    "/register-page"
+)
 def register_page():
 
     return render_template(
@@ -209,7 +250,8 @@ def register():
     if not data:
 
         return jsonify({
-            "error": "Invalid or missing JSON data"
+            "error":
+                "Invalid or missing JSON data"
         }), 400
 
     username = data.get(
@@ -225,13 +267,15 @@ def register():
     if not username:
 
         return jsonify({
-            "error": "Username is required"
+            "error":
+                "Username is required"
         }), 400
 
     if not password:
 
         return jsonify({
-            "error": "Password is required"
+            "error":
+                "Password is required"
         }), 400
 
     if len(username) < 3:
@@ -333,9 +377,13 @@ def login():
                     "Invalid username or password"
             }), 401
 
-        session["user_id"] = user["id"]
+        session[
+            "user_id"
+        ] = user["id"]
 
-        session["username"] = user["username"]
+        session[
+            "username"
+        ] = user["username"]
 
         return jsonify({
             "status": "success",
@@ -441,16 +489,34 @@ def scan():
 
     scan_type = str(
         scan_type
-    ).lower()
+    ).lower().strip()
 
-    if scan_type not in [
+    # ========================================================
+    # ALL SUPPORTED SCAN TYPES
+    # ========================================================
+
+    allowed_scan_types = [
         "tcp",
-        "udp"
-    ]:
+        "udp",
+        "syn",
+        "service",
+        "service_detection",
+        "version",
+        "version_detection",
+        "os",
+        "os_scan",
+        "os_detection",
+        "aggressive",
+        "aggressive_scan",
+        "full",
+        "full_scan"
+    ]
+
+    if scan_type not in allowed_scan_types:
 
         return jsonify({
             "error":
-                "Scan type must be TCP or UDP"
+                "Invalid scan type"
         }), 400
 
     if not target:
@@ -460,18 +526,23 @@ def scan():
                 "Target is required"
         }), 400
 
-
     # ========================================================
     # MULTIPLE TARGET SCAN
     # ========================================================
 
-    if isinstance(target, list):
+    if isinstance(
+        target,
+        list
+    ):
 
         targets = []
 
         for item in target:
 
-            if not isinstance(item, str):
+            if not isinstance(
+                item,
+                str
+            ):
 
                 return jsonify({
                     "error":
@@ -483,14 +554,18 @@ def scan():
             if not item:
                 continue
 
-            if not is_valid_target(item):
+            if not is_valid_target(
+                item
+            ):
 
                 return jsonify({
                     "error":
                         f"Invalid target: {item}"
                 }), 400
 
-            targets.append(item)
+            targets.append(
+                item
+            )
 
         if not targets:
 
@@ -503,46 +578,65 @@ def scan():
 
             start_time = time.perf_counter()
 
-            all_results = scan_multiple_targets(
-                targets,
-                scan_type
+            all_results = (
+                scan_multiple_targets(
+                    targets,
+                    scan_type
+                )
             )
 
-            # Convert grouped results into flat results
+            # ------------------------------------------------
+            # FLATTEN RESULTS
+            # ------------------------------------------------
+
             flat_results = []
 
             for target_result in all_results:
 
-                target_name = target_result.get(
-                    "target"
+                target_name = (
+                    target_result.get(
+                        "target"
+                    )
                 )
 
-                target_ports = target_result.get(
-                    "results",
-                    []
+                target_ports = (
+                    target_result.get(
+                        "results",
+                        []
+                    )
                 )
 
                 for result in target_ports:
 
-                    result_copy = dict(result)
+                    result_copy = dict(
+                        result
+                    )
 
-                    result_copy["target"] = target_name
+                    result_copy[
+                        "target"
+                    ] = target_name
 
                     flat_results.append(
                         result_copy
                     )
 
-            flat_results = add_cve_information(
-                flat_results
+            flat_results = (
+                add_cve_information(
+                    flat_results
+                )
             )
 
-            recommendations = generate_recommendations(
-                flat_results
+            recommendations = (
+                generate_recommendations(
+                    flat_results
+                )
             )
 
-            scan_id = save_multiple_scan(
-                targets,
-                flat_results
+            scan_id = (
+                save_multiple_scan(
+                    targets,
+                    flat_results
+                )
             )
 
             scan_duration = round(
@@ -551,8 +645,10 @@ def scan():
                 2
             )
 
-            scan_date = get_scan_date(
-                scan_id
+            scan_date = (
+                get_scan_date(
+                    scan_id
+                )
             )
 
             pdf_path = generate_pdf(
@@ -566,7 +662,8 @@ def scan():
 
             return jsonify({
 
-                "status": "success",
+                "status":
+                    "success",
 
                 "targets":
                     targets,
@@ -594,7 +691,6 @@ def scan():
 
                 "report":
                     f"/report/{scan_id}"
-
             })
 
         except Exception as e:
@@ -609,12 +705,14 @@ def scan():
                     str(e)
             }), 500
 
-
     # ========================================================
     # SINGLE TARGET SCAN
     # ========================================================
 
-    if not isinstance(target, str):
+    if not isinstance(
+        target,
+        str
+    ):
 
         return jsonify({
             "error":
@@ -630,7 +728,9 @@ def scan():
                 "Target is required"
         }), 400
 
-    if not is_valid_target(target):
+    if not is_valid_target(
+        target
+    ):
 
         return jsonify({
             "error":
@@ -646,8 +746,10 @@ def scan():
             scan_type
         )
 
-        results = add_cve_information(
-            results
+        results = (
+            add_cve_information(
+                results
+            )
         )
 
         scan_id = save_scan(
@@ -655,8 +757,10 @@ def scan():
             results
         )
 
-        recommendations = generate_recommendations(
-            results
+        recommendations = (
+            generate_recommendations(
+                results
+            )
         )
 
         scan_duration = round(
@@ -665,8 +769,10 @@ def scan():
             2
         )
 
-        scan_date = get_scan_date(
-            scan_id
+        scan_date = (
+            get_scan_date(
+                scan_id
+            )
         )
 
         pdf_path = generate_pdf(
@@ -680,7 +786,8 @@ def scan():
 
         return jsonify({
 
-            "status": "success",
+            "status":
+                "success",
 
             "target":
                 target,
@@ -705,7 +812,6 @@ def scan():
 
             "report":
                 f"/report/{scan_id}"
-
         })
 
     except Exception as e:
@@ -745,7 +851,9 @@ def pcap_analyze():
                 "PCAP file is required"
         }), 400
 
-    file = request.files["file"]
+    file = request.files[
+        "file"
+    ]
 
     if file.filename == "":
 
@@ -774,7 +882,9 @@ def pcap_analyze():
         }), 400
 
     file_path = os.path.join(
-        app.config["UPLOAD_FOLDER"],
+        app.config[
+            "UPLOAD_FOLDER"
+        ],
         filename
     )
 
@@ -789,7 +899,8 @@ def pcap_analyze():
         )
 
         return jsonify({
-            "status": "success",
+            "status":
+                "success",
             "filename":
                 filename,
             "analysis":
@@ -820,7 +931,7 @@ def pcap_analyze():
 
 
 # ============================================================
-# HISTORY PAGE
+# HISTORY
 # ============================================================
 
 @app.route(
@@ -828,42 +939,6 @@ def pcap_analyze():
     methods=["GET"]
 )
 def history():
-
-    if "user_id" not in session:
-        return redirect("/login-page")
-
-    try:
-
-        scans = get_scan_history()
-
-        return render_template(
-            "history.html",
-            history=scans
-        )
-
-    except Exception as e:
-
-        print(
-            "History error:",
-            repr(e)
-        )
-
-        return render_template(
-            "history.html",
-            history=[],
-            error=str(e)
-        )
-
-
-# ============================================================
-# HISTORY API
-# ============================================================
-
-@app.route(
-    "/api/history",
-    methods=["GET"]
-)
-def api_history():
 
     if "user_id" not in session:
 
@@ -877,14 +952,17 @@ def api_history():
         scans = get_scan_history()
 
         return jsonify({
-            "status": "success",
-            "history": scans
+            "status":
+                "success",
+
+            "history":
+                scans
         })
 
     except Exception as e:
 
         print(
-            "History API error:",
+            "History error:",
             repr(e)
         )
 
@@ -892,6 +970,7 @@ def api_history():
             "error":
                 str(e)
         }), 500
+
 
 # ============================================================
 # EMAIL REPORT
@@ -975,7 +1054,9 @@ def email_report():
         )
 
         return jsonify({
-            "status": "success",
+            "status":
+                "success",
+
             "message":
                 "PDF report sent successfully"
         })
@@ -1026,11 +1107,8 @@ def report(scan_id):
             }), 404
 
         return send_file(
-
             pdf_path,
-
             as_attachment=True,
-
             download_name=(
                 f"scan_report_{scan_id}.pdf"
             )
