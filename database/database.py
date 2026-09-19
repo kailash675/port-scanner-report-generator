@@ -94,8 +94,9 @@ def verify_user(username, password):
 # SAVE SINGLE SCAN
 # ============================================================
 
-def save_scan(target, results):
+def save_scan(user_id, target, results):
     try:
+
         scan_type = "tcp"
 
         if results:
@@ -103,12 +104,14 @@ def save_scan(target, results):
                 "protocol",
                 "TCP"
             )
+
             scan_type = protocol.lower()
 
         scan_response = (
             supabase
             .table("scans")
             .insert({
+                "user_id": user_id,
                 "target": target,
                 "total_ports": len(results),
                 "scan_type": scan_type
@@ -125,9 +128,11 @@ def save_scan(target, results):
         scan_id = scan_response.data[0]["id"]
 
         if results:
+
             scan_results = []
 
             for result in results:
+
                 scan_results.append({
                     "scan_id": scan_id,
                     "port": result["port"],
@@ -147,16 +152,21 @@ def save_scan(target, results):
         return scan_id
 
     except Exception as e:
-        print("Save scan error:", repr(e))
-        raise
 
+        print(
+            "Save scan error:",
+            e
+        )
+
+        raise
 
 # ============================================================
 # SAVE MULTIPLE TARGET SCAN
 # ============================================================
 
-def save_multiple_scan(targets, results):
+def save_multiple_scan(user_id, targets, results):
     try:
+
         target_text = ", ".join(targets)
 
         scan_type = "tcp"
@@ -166,12 +176,14 @@ def save_multiple_scan(targets, results):
                 "protocol",
                 "TCP"
             )
+
             scan_type = protocol.lower()
 
         scan_response = (
             supabase
             .table("scans")
             .insert({
+                "user_id": user_id,
                 "target": target_text,
                 "total_ports": len(results),
                 "scan_type": scan_type
@@ -188,9 +200,11 @@ def save_multiple_scan(targets, results):
         scan_id = scan_response.data[0]["id"]
 
         if results:
+
             scan_results = []
 
             for result in results:
+
                 scan_results.append({
                     "scan_id": scan_id,
                     "port": result["port"],
@@ -210,19 +224,20 @@ def save_multiple_scan(targets, results):
         return scan_id
 
     except Exception as e:
+
         print(
             "Save multiple scan error:",
-            repr(e)
+            e
         )
-        raise
 
+        raise
 
 # ============================================================
 # SCAN HISTORY
 # ============================================================
-
-def get_scan_history():
+def get_scan_history(user_id):
     try:
+
         response = (
             supabase
             .table("scans")
@@ -230,6 +245,7 @@ def get_scan_history():
                 "id, target, scan_date, "
                 "total_ports, scan_type, duration"
             )
+            .eq("user_id", user_id)
             .order(
                 "id",
                 desc=True
@@ -240,6 +256,7 @@ def get_scan_history():
         history = []
 
         for row in response.data:
+
             history.append({
                 "id": row.get("id"),
                 "target": row.get("target"),
@@ -252,8 +269,10 @@ def get_scan_history():
         return history
 
     except Exception as e:
+
         print(
             "Get scan history error:",
-            repr(e)
+            e
         )
-        raise
+
+        return []

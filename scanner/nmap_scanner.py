@@ -322,6 +322,15 @@ def scan_target(
         scan_type
     )
 
+    # IMPORTANT:
+    # Force Nmap to return XML output to stdout.
+    # Without this, Nmap returns normal text output
+    # and XML parser will fail.
+    command += [
+        "-oX",
+        "-"
+    ]
+
     print(
         "\n[NMAP] Starting scan"
     )
@@ -368,6 +377,45 @@ def scan_target(
             f"Failed to execute Nmap: {e}"
         )
 
+    # --------------------------------------------------------
+    # ERROR CHECK
+    # --------------------------------------------------------
+
+    if process.returncode != 0:
+
+        error_message = (
+            process.stderr.strip()
+            or process.stdout.strip()
+            or "Unknown Nmap error"
+        )
+
+        raise RuntimeError(
+            f"Nmap scan failed: {error_message}"
+        )
+
+    # --------------------------------------------------------
+    # PARSE XML
+    # --------------------------------------------------------
+
+    xml_output = process.stdout.strip()
+
+    if not xml_output:
+
+        raise RuntimeError(
+            "Nmap returned empty XML output."
+        )
+
+    # Make sure Nmap actually returned XML
+    if not xml_output.startswith("<?xml"):
+
+        raise RuntimeError(
+            "Nmap returned invalid XML output."
+        )
+
+    return parse_nmap_xml(
+        xml_output
+    )
+    
     # --------------------------------------------------------
     # ERROR CHECK
     # --------------------------------------------------------
