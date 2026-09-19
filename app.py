@@ -2051,171 +2051,167 @@ def scan():
 
 # ============================================================
 
-
-@app.route(
-
-    "/pcap/analyze",
-
-    methods=["POST"]
-
-)
-
+@app.route("/pcap/analyze", methods=["POST"])
 def pcap_analyze():
 
-
+    # --------------------------------
+    # LOGIN CHECK
+    # --------------------------------
     if "user_id" not in session:
 
-
         return jsonify({
-
-            "error":
-
-                "Please login before analyzing PCAP files"
-
+            "error": "Please login before analyzing PCAP files"
         }), 401
 
-
+    # --------------------------------
+    # FILE CHECK
+    # --------------------------------
     if "file" not in request.files:
 
-
         return jsonify({
-
-            "error":
-
-                "PCAP file is required"
-
+            "error": "PCAP file is required"
         }), 400
-
 
     file = request.files["file"]
 
-
     if file.filename == "":
 
-
         return jsonify({
-
-            "error":
-
-                "No file selected"
-
+            "error": "No file selected"
         }), 400
 
-
+    # --------------------------------
+    # SECURE FILE NAME
+    # --------------------------------
     filename = secure_filename(
-
         file.filename
-
     )
 
-
+    # --------------------------------
+    # ALLOWED FILE TYPES
+    # --------------------------------
     allowed_extensions = (
-
         ".pcap",
-
         ".pcapng",
-
         ".cap"
-
     )
-
 
     if not filename.lower().endswith(
-
         allowed_extensions
-
     ):
 
-
         return jsonify({
-
             "error":
-
                 "Only PCAP, PCAPNG or CAP files are allowed"
-
         }), 400
 
-
+    # --------------------------------
+    # FILE PATH
+    # --------------------------------
     file_path = os.path.join(
-
         app.config["UPLOAD_FOLDER"],
-
         filename
-
     )
-
 
     try:
 
-
+        # --------------------------------
+        # SAVE UPLOADED FILE
+        # --------------------------------
         file.save(
-
             file_path
-
         )
 
+        print(
+            "PCAP file saved:",
+            file_path
+        )
 
+        # --------------------------------
+        # ANALYZE PCAP
+        # --------------------------------
         analysis = analyze_pcap(
-
             file_path
-
         )
 
+        print(
+            "PCAP analysis:",
+            analysis
+        )
 
+        # --------------------------------
+        # RETURN RESULT
+        #
+        # Keep analysis nested AND also
+        # expose fields at top-level so
+        # existing frontend code works.
+        # --------------------------------
         return jsonify({
 
-            "status":
+            "status": "success",
 
-                "success",
+            "filename": filename,
 
-            "filename":
+            # Original structure
+            "analysis": analysis,
 
-                filename,
+            # Frontend-friendly structure
+            "total_packets":
+                analysis.get(
+                    "total_packets",
+                    0
+                ),
 
-            "analysis":
+            "protocols":
+                analysis.get(
+                    "protocols",
+                    {}
+                ),
 
-                analysis
+            "source_ips":
+                analysis.get(
+                    "source_ips",
+                    []
+                ),
 
+            "destination_ips":
+                analysis.get(
+                    "destination_ips",
+                    []
+                )
         })
-
 
     except Exception as e:
 
-
         print(
-
             "PCAP error:",
-
             repr(e)
-
         )
-
 
         return jsonify({
 
             "error":
-
                 str(e)
 
         }), 500
 
-
     finally:
 
-
+        # --------------------------------
+        # DELETE TEMPORARY PCAP
+        # --------------------------------
         if os.path.exists(
-
             file_path
-
         ):
 
-
             os.remove(
-
                 file_path
-
             )
 
+            print(
+                "Temporary PCAP deleted:",
+                file_path
+            )
 
 
 # ============================================================
