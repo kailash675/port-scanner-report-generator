@@ -1,722 +1,130 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>SecureScan - Scan History</title>
+<meta charset="UTF-8">
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #080f1c;
-            color: #e6edf7;
-            min-height: 100vh;
-        }
+<title>SecureScan - Scan History</title>
 
-        /* ================= SIDEBAR ================= */
+<style>
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 300px;
-            height: 100vh;
-            background: #0b1526;
-            border-right: 1px solid #1d2b42;
-            padding: 32px 24px;
-            z-index: 10;
-        }
+*{box-sizing:border-box}body{margin:0;background:#070b14;color:#e5e7eb;font-family:Arial,Helvetica,sans-serif}
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #1d2b42;
-        }
+.page{min-height:100vh;padding:35px}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
 
-        .logo {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            background: #10294a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 27px;
-            border: 1px solid #21456f;
-        }
+.title h1{margin:0;color:#f8fafc;font-size:28px}.title p{margin:8px 0 0;color:#64748b;font-size:13px}
 
-        .brand h2 {
-            font-size: 20px;
-            letter-spacing: 1px;
-            color: #f1f5fb;
-        }
+.back-btn{display:inline-block;padding:11px 16px;border-radius:7px;background:#111827;border:1px solid #263449;color:#93c5fd;text-decoration:none;font-size:12px}
 
-        .brand span {
-            display: block;
-            margin-top: 4px;
-            font-size: 10px;
-            color: #7186a5;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px}
 
-        .menu-title {
-            margin: 34px 0 16px;
-            padding-left: 12px;
-            color: #526783;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
+.summary-card{background:#0d1421;border:1px solid #1e293b;border-radius:10px;padding:18px}
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            text-decoration: none;
-            color: #9db0ca;
-            padding: 15px 14px;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            transition: 0.25s;
-        }
+.summary-card span{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:1px}
 
-        .nav-link:hover {
-            background: #112744;
-            color: #dceaff;
-        }
+.summary-card strong{display:block;margin-top:8px;color:#e2e8f0;font-size:22px}
 
-        .nav-link.active {
-            background: #173963;
-            color: #40bfff;
-            border-left: 3px solid #27c4ff;
-        }
+.card{background:#0d1421;border:1px solid #1e293b;border-radius:10px;overflow:hidden}
 
-        .nav-icon {
-            width: 22px;
-            text-align: center;
-        }
+.card-header{padding:20px 22px;border-bottom:1px solid #1e293b}.card-header h2{margin:0;color:#e2e8f0;font-size:17px}
 
-        .sidebar-bottom {
-            position: absolute;
-            left: 24px;
-            right: 24px;
-            bottom: 28px;
-            padding-top: 22px;
-            border-top: 1px solid #1d2b42;
-        }
+.card-header p{margin:6px 0 0;color:#64748b;font-size:11px}.table-wrapper{width:100%;overflow-x:auto}
 
-        .logged {
-            color: #607693;
-            font-size: 12px;
-            margin-bottom: 12px;
-        }
+table{width:100%;border-collapse:collapse;min-width:800px}th{text-align:left;padding:13px 15px;background:#080d17;color:#64748b;border-bottom:1px solid #1e293b;font-size:10px;text-transform:uppercase;letter-spacing:.7px}
 
-        .logged strong {
-            display: block;
-            color: #bcd0e8;
-            margin-top: 5px;
-            font-size: 14px;
-        }
+td{padding:14px 15px;color:#94a3b8;font-size:12px;border-bottom:1px solid #151f2e}tr:hover td{background:#0f1725}
 
-        .logout {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #2a3b57;
-            border-radius: 9px;
-            background: #101b2d;
-            color: #a9bad0;
-            cursor: pointer;
-            font-size: 14px;
-        }
+.id{color:#e2e8f0;font-weight:600}.target{color:#7dd3fc;font-weight:600}
 
-        .logout:hover {
-            background: #17263d;
-            color: white;
-        }
+.badge{display:inline-block;padding:4px 8px;border-radius:12px;background:#111c2e;color:#7dd3fc;border:1px solid #1d354d;font-size:9px;font-weight:700}
 
-        /* ================= MAIN ================= */
+.report-btn{display:inline-block;padding:7px 10px;border-radius:5px;background:#172033;border:1px solid #263b5a;color:#93c5fd;text-decoration:none;font-size:10px}
 
-        .main {
-            margin-left: 300px;
-            padding: 38px 48px 60px;
-            min-height: 100vh;
-        }
+.empty{padding:45px 20px;text-align:center;color:#64748b;font-size:13px}
 
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 35px;
-        }
+.error{margin-bottom:18px;padding:13px 15px;border-radius:7px;background:#1c1014;border:1px solid #5f2028;color:#fca5a5;font-size:12px}
 
-        .title-label {
-            color: #2ec7ff;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
+@media(max-width:700px){.page{padding:20px}.header{flex-direction:column;align-items:flex-start;gap:15px}.summary{grid-template-columns:1fr}}
 
-        .topbar h1 {
-            font-size: 36px;
-            color: #f2f6fc;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: #6f84a2;
-            font-size: 15px;
-        }
-
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            color: #25e582;
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .status-dot {
-            width: 9px;
-            height: 9px;
-            background: #25e582;
-            border-radius: 50%;
-            box-shadow: 0 0 12px #25e582;
-        }
-
-        /* ================= CARD ================= */
-
-        .card {
-            background: #0d1829;
-            border: 1px solid #1d2c43;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-        }
-
-        .card-header {
-            padding: 28px 28px 25px;
-            border-bottom: 1px solid #1b2a40;
-        }
-
-        .card-header .label {
-            color: #2ec7ff;
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
-
-        .card-header h2 {
-            font-size: 23px;
-            margin-bottom: 8px;
-        }
-
-        .card-header p {
-            color: #627895;
-            font-size: 13px;
-        }
-
-        /* ================= COUNT ================= */
-
-        .history-count {
-            padding: 18px 28px;
-            color: #7d92ae;
-            font-size: 14px;
-            border-bottom: 1px solid #1b2a40;
-        }
-
-        .history-count strong {
-            color: #38c8ff;
-            font-size: 16px;
-            margin-left: 5px;
-        }
-
-        /* ================= TABLE ================= */
-
-        .table-wrapper {
-            overflow-x: auto;
-            padding: 0 26px 26px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 850px;
-        }
-
-        thead {
-            background: #070e19;
-        }
-
-        th {
-            padding: 15px 14px;
-            text-align: left;
-            color: #647995;
-            font-size: 10px;
-            letter-spacing: 1.3px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        td {
-            padding: 17px 14px;
-            border-bottom: 1px solid #17263a;
-            color: #aebed2;
-            font-size: 13px;
-        }
-
-        tbody tr {
-            transition: 0.2s;
-        }
-
-        tbody tr:hover {
-            background: #101e31;
-        }
-
-        td.id {
-            color: #42c8ff;
-            font-weight: bold;
-        }
-
-        td.target {
-            color: #e1eaf5;
-            font-weight: 600;
-        }
-
-        .port-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: #0d2b1d;
-            border: 1px solid #145b34;
-            color: #28df72;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .view-btn {
-            display: inline-block;
-            text-decoration: none;
-            padding: 9px 15px;
-            border-radius: 8px;
-            border: 1px solid #254a75;
-            background: #101f35;
-            color: #8fc8ff;
-            font-size: 12px;
-            font-weight: bold;
-            transition: 0.25s;
-        }
-
-        .view-btn:hover {
-            background: #17365b;
-            border-color: #3abfff;
-            color: white;
-            box-shadow: 0 0 14px rgba(45, 190, 255, 0.18);
-        }
-
-        /* ================= EMPTY ================= */
-
-        .empty {
-            padding: 60px 20px;
-            text-align: center;
-            color: #657a96;
-        }
-
-        .error {
-            margin: 20px 26px;
-            padding: 14px;
-            border-radius: 8px;
-            background: #30151a;
-            border: 1px solid #6b2730;
-            color: #ff8995;
-        }
-
-        /* ================= RESPONSIVE ================= */
-
-        @media (max-width: 900px) {
-
-            .sidebar {
-                width: 220px;
-            }
-
-            .main {
-                margin-left: 220px;
-                padding: 28px;
-            }
-
-            .topbar h1 {
-                font-size: 29px;
-            }
-        }
-
-        @media (max-width: 650px) {
-
-            .sidebar {
-                position: relative;
-                width: 100%;
-                height: auto;
-                padding: 20px;
-            }
-
-            .sidebar-bottom {
-                position: static;
-                margin-top: 25px;
-            }
-
-            .main {
-                margin-left: 0;
-                padding: 24px 16px;
-            }
-
-            .topbar {
-                display: block;
-            }
-
-            .system-status {
-                margin-top: 20px;
-            }
-        }
-    </style>
+</style>
 
 </head>
 
 <body>
 
-    <!-- ================= SIDEBAR ================= -->
+<div class="page">
 
-    <aside class="sidebar">
+<div class="header">
 
-        <div class="brand">
+<div class="title"><h1>Scan History</h1><p>Previous SecureScan network security assessments</p></div>
 
-            <div class="logo">
-                🛡️
-            </div>
+<a href="/" class="back-btn">← Back to Dashboard</a>
 
-            <div>
-                <h2>SECURESCAN</h2>
-                <span>Port Security Tool</span>
-            </div>
+</div>
 
-        </div>
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
 
-        <div class="menu-title">
-            MAIN MENU
-        </div>
+<div class="summary">
 
-        <a href="/" class="nav-link">
+<div class="summary-card"><span>Total Scans</span><strong>{{ history|length }}</strong></div>
 
-            <span class="nav-icon">▦</span>
+<div class="summary-card"><span>Current User</span><strong>{{ session.get("username","User") }}</strong></div>
 
-            <span>
-                Dashboard
-            </span>
+<div class="summary-card"><span>Scanner</span><strong>Nmap</strong></div>
 
-        </a>
+</div>
 
-        <a href="/#scan" class="nav-link">
+<div class="card">
 
-            <span class="nav-icon">⌕</span>
+<div class="card-header"><h2>Security Scan Records</h2><p>Completed scans saved in the database</p></div>
 
-            <span>
-                Port Scanner
-            </span>
+<div class="table-wrapper">
 
-        </a>
+{% if history %}
 
-        <a href="/history" class="nav-link active">
+<table>
 
-            <span class="nav-icon">◷</span>
+<thead><tr><th>ID</th><th>Date</th><th>Target</th><th>Scan Type</th><th>Ports</th><th>Duration</th><th>Report</th></tr></thead>
 
-            <span>
-                Scan History
-            </span>
+<tbody>
 
-        </a>
+{% for scan in history %}
 
-        <div class="menu-title">
-            SECURITY TOOLS
-        </div>
+<tr>
 
-        <a href="/#pcap" class="nav-link">
+<td class="id">#{{ scan["id"] }}</td>
 
-            <span class="nav-icon">◉</span>
+<td>{{ scan["scan_date"] or "N/A" }}</td>
 
-            <span>
-                PCAP Analyzer
-            </span>
+<td class="target">{{ scan["target"] or "N/A" }}</td>
 
-        </a>
+<td><span class="badge">{{ (scan["scan_type"] or "TCP")|upper }}</span></td>
 
-        <a href="/#results" class="nav-link">
+<td>{{ scan["total_ports"] or 0 }}</td>
 
-            <span class="nav-icon">▤</span>
+<td>{{ scan["duration"] if scan["duration"] is not none else "N/A" }}{% if scan["duration"] is not none %} sec{% endif %}</td>
 
-            <span>
-                Reports
-            </span>
+<td><a class="report-btn" href="{{ url_for('report', scan_id=scan['id']) }}">PDF</a></td>
 
-        </a>
+</tr>
 
-        <a href="/#results" class="nav-link">
+{% endfor %}
 
-            <span class="nav-icon">⚠</span>
+</tbody>
 
-            <span>
-                Vulnerabilities
-            </span>
+</table>
 
-        </a>
+{% else %}<div class="empty">No scan history available.</div>{% endif %}
 
-        <div class="sidebar-bottom">
+</div>
 
-            <div class="logged">
+</div>
 
-                Logged in as
-
-                <strong>
-                    {{ session.get("username", "User") }}
-                </strong>
-
-            </div>
-
-            <button
-                class="logout"
-                type="button"
-                onclick="logoutUser()">
-
-                Logout
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- ================= MAIN ================= -->
-
-    <main class="main">
-
-        <div class="topbar">
-
-            <div>
-
-                <div class="title-label">
-                    SECURITY HISTORY
-                </div>
-
-                <h1>
-                    Scan History
-                </h1>
-
-                <p class="subtitle">
-                    View your previous network security scans
-                </p>
-
-            </div>
-
-            <div class="system-status">
-
-                <span class="status-dot"></span>
-
-                System Online
-
-            </div>
-
-        </div>
-
-
-        <!-- ================= HISTORY CARD ================= -->
-
-        <section class="card">
-
-            <div class="card-header">
-
-                <div class="label">
-                    SECURITY ACTIVITY
-                </div>
-
-                <h2>
-                    Previous Scans
-                </h2>
-
-                <p>
-                    Review targets and security reports generated by SecureScan.
-                </p>
-
-            </div>
-
-
-            <div class="history-count">
-
-                Total scans:
-
-                <strong>
-                    {{ history|length }}
-                </strong>
-
-            </div>
-
-
-            {% if error %}
-
-            <div class="error">
-                {{ error }}
-            </div>
-
-            {% endif %}
-
-
-            {% if history %}
-
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Scan ID
-                            </th>
-
-                            <th>
-                                Scan Date
-                            </th>
-
-                            <th>
-                                Target
-                            </th>
-
-                            <th>
-                                Open Ports
-                            </th>
-
-                            <th>
-                                Report
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                    {% for scan in history %}
-
-                        <tr>
-
-                            <td class="id">
-                                #{{ scan.id }}
-                            </td>
-
-                            <td>
-                                {{ scan.scan_date }}
-                            </td>
-
-                            <td class="target">
-                                {{ scan.target }}
-                            </td>
-
-                            <td>
-
-                                <span class="port-badge">
-                                    {{ scan.total_ports }} ports
-                                </span>
-
-                            </td>
-
-                            <td>
-
-                                <a
-                                    class="view-btn"
-                                    href="/report/{{ scan.id }}"
-                                    target="_blank">
-
-                                    View PDF
-
-                                </a>
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-            {% else %}
-
-            <div class="empty">
-
-                No scan history available yet.
-
-            </div>
-
-            {% endif %}
-
-        </section>
-
-    </main>
-
-
-    <!-- ================= LOGOUT ================= -->
-
-    <script>
-
-        async function logoutUser() {
-
-            try {
-
-                const response = await fetch(
-                    "/logout",
-                    {
-                        method: "POST"
-                    }
-                );
-
-                if (response.ok) {
-
-                    window.location.href =
-                        "/login-page";
-
-                } else {
-
-                    alert("Logout failed.");
-
-                }
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert("Logout failed.");
-
-            }
-
-        }
-
-    </script>
+</div>
 
 </body>
 

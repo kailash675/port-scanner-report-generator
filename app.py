@@ -934,42 +934,50 @@ def pcap_analyze():
 # HISTORY
 # ============================================================
 
-@app.route(
-    "/history",
-    methods=["GET"]
-)
+@app.route("/history", methods=["GET"])
 def history():
 
     if "user_id" not in session:
+        return render_template("login.html")
 
-        return jsonify({
-            "error":
-                "Please login before viewing scan history"
-        }), 401
+    try:
+        scans = get_scan_history()
+
+        return render_template(
+            "history.html",
+            history=scans
+        )
+
+    except Exception as e:
+        print("History error:", repr(e))
+
+        return render_template(
+            "history.html",
+            history=[],
+            error=str(e)
+        )
+
+        
+@app.route("/api/history", methods=["GET"])
+
+def api_history():
+
+    if "user_id" not in session:
+
+        return jsonify({"error": "Please login before viewing scan history"}), 401
 
     try:
 
         scans = get_scan_history()
 
-        return jsonify({
-            "status":
-                "success",
-
-            "history":
-                scans
-        })
+        return jsonify({"status": "success", "history": scans})
 
     except Exception as e:
 
-        print(
-            "History error:",
-            repr(e)
-        )
+        print("API history error:", repr(e))
 
-        return jsonify({
-            "error":
-                str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
+
 
 
 # ============================================================
