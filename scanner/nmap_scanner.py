@@ -5,36 +5,34 @@ import xml.etree.ElementTree as ET
 
 
 def get_nmap_path():
-    """
-    Find Nmap executable.
-    """
+    """Find Nmap executable."""
 
     nmap_path = shutil.which("nmap")
 
     if nmap_path:
         return nmap_path
 
-    windows_path = r"C:\Program Files (x86)\Nmap\nmap.exe"
+    windows_paths = [
+        r"C:\Program Files (x86)\Nmap\nmap.exe",
+        r"C:\Program Files\Nmap\nmap.exe"
+    ]
 
-    if os.path.exists(windows_path):
-        return windows_path
-
-    windows_path_2 = r"C:\Program Files\Nmap\nmap.exe"
-
-    if os.path.exists(windows_path_2):
-        return windows_path_2
+    for path in windows_paths:
+        if os.path.exists(path):
+            return path
 
     raise FileNotFoundError(
-        "Nmap executable not found. Please install Nmap."
+        "Nmap executable not found."
     )
 
 
-def is_raw_socket_error(error_message):
-    """
-    Detect errors caused by missing raw socket/root privileges.
-    """
+def raw_socket_error(error):
+    """Check whether error is caused by privileged/raw socket restrictions."""
 
-    error = error_message.lower()
+    if not error:
+        return False
+
+    error = error.lower()
 
     keywords = [
         "couldn't open a raw socket",
@@ -44,21 +42,17 @@ def is_raw_socket_error(error_message):
         "requires root",
         "requires privileged",
         "raw socket",
-        "you need to be root",
-        "failed to open a raw socket"
+        "you need to be root"
     ]
 
-    return any(keyword in error for keyword in keywords)
+    return any(word in error for word in keywords)
 
 
 def get_scan_arguments(scan_type):
-    """
-    Return Nmap arguments for each scan type.
-    """
 
     scan_type = (scan_type or "tcp").lower().strip()
 
-    # Normal TCP Connect Scan
+    # TCP CONNECT
     if scan_type == "tcp":
         return [
             "-sT",
@@ -68,7 +62,7 @@ def get_scan_arguments(scan_type):
             "1-10000"
         ]
 
-    # UDP Scan
+    # UDP
     if scan_type == "udp":
         return [
             "-sU",
@@ -78,7 +72,7 @@ def get_scan_arguments(scan_type):
             "100"
         ]
 
-    # SYN Scan
+    # SYN
     if scan_type == "syn":
         return [
             "-sS",
@@ -88,7 +82,7 @@ def get_scan_arguments(scan_type):
             "1-10000"
         ]
 
-    # Service / Version Detection
+    # SERVICE / VERSION
     if scan_type in [
         "service",
         "service_detection",
@@ -104,7 +98,7 @@ def get_scan_arguments(scan_type):
             "1-10000"
         ]
 
-    # OS Detection
+    # OS
     if scan_type in [
         "os",
         "os_scan",
@@ -119,7 +113,7 @@ def get_scan_arguments(scan_type):
             "1-1000"
         ]
 
-    # Aggressive Scan
+    # AGGRESSIVE
     if scan_type in [
         "aggressive",
         "aggressive_scan"
@@ -132,7 +126,7 @@ def get_scan_arguments(scan_type):
             "1-10000"
         ]
 
-    # Full Scan
+    # FULL
     if scan_type in [
         "full",
         "full_scan"
@@ -145,7 +139,7 @@ def get_scan_arguments(scan_type):
             "-p-"
         ]
 
-    # Default
+    # DEFAULT
     return [
         "-sT",
         "-Pn",
@@ -156,15 +150,10 @@ def get_scan_arguments(scan_type):
 
 
 def get_fallback_arguments(scan_type):
-    """
-    Render-safe fallback scans.
-    These avoid raw socket operations.
-    """
 
     scan_type = (scan_type or "tcp").lower().strip()
 
-    # UDP cannot be performed as a true UDP scan
-    # without the required privileges on this Render environment.
+    # UDP fallback
     if scan_type == "udp":
         return [
             "-sT",
@@ -174,7 +163,7 @@ def get_fallback_arguments(scan_type):
             "100"
         ]
 
-    # SYN -> TCP Connect fallback
+    # SYN fallback
     if scan_type == "syn":
         return [
             "-sT",
@@ -184,7 +173,7 @@ def get_fallback_arguments(scan_type):
             "1-10000"
         ]
 
-    # OS detection -> service/version detection fallback
+    # OS fallback
     if scan_type in [
         "os",
         "os_scan",
@@ -199,7 +188,7 @@ def get_fallback_arguments(scan_type):
             "1-1000"
         ]
 
-    # Aggressive -> service/version detection fallback
+    # Aggressive fallback
     if scan_type in [
         "aggressive",
         "aggressive_scan"
@@ -213,7 +202,7 @@ def get_fallback_arguments(scan_type):
             "1-10000"
         ]
 
-    # Service/version already uses TCP Connect
+    # Service / version
     if scan_type in [
         "service",
         "service_detection",
@@ -240,11 +229,11 @@ def get_fallback_arguments(scan_type):
 
 def run_nmap(target, scan_type="tcp"):
     """
-    Execute Nmap scan.
+    Run Nmap and return XML string.
 
-    Automatically falls back to unprivileged TCP Connect
-    scanning when Render/container restrictions prevent
-    raw socket operations.
+    IMPORTANT:
+    This function returns ONLY XML string.
+    This keeps compatibility with the existing application.
     """
 
     nmap_path = get_nmap_path()
@@ -260,6 +249,7 @@ def run_nmap(target, scan_type="tcp"):
     ]
 
     try:
+
         process = subprocess.run(
             command,
             capture_output=True,
@@ -271,20 +261,19 @@ def run_nmap(target, scan_type="tcp"):
         stderr = process.stderr or ""
 
         if process.returncode == 0 and stdout.strip():
-            return {
-                "xml": stdout,
-                "scan_note": None,
-                "fallback_used": False
-            }
+            return stdout
 
         error_message = stderr.strip() or stdout.strip()
 
-        # -----------------------------------------
-        # RAW SOCKET FALLBACK
-        # -----------------------------------------
-        if is_raw_socket_error(error_message):
+        # ----------------------------------------
+        # RENDER RAW SOCKET FALLBACK
+        # ----------------------------------------
 
-            fallback_arguments = get_fallback_arguments(scan_type)
+        if raw_socket_error(error_message):
+
+            fallback_arguments = get_fallback_arguments(
+                scan_type
+            )
 
             fallback_command = [
                 nmap_path,
@@ -301,76 +290,31 @@ def run_nmap(target, scan_type="tcp"):
                 timeout=600
             )
 
-            fallback_stdout = fallback_process.stdout or ""
-            fallback_stderr = fallback_process.stderr or ""
+            fallback_stdout = (
+                fallback_process.stdout or ""
+            )
+
+            fallback_stderr = (
+                fallback_process.stderr or ""
+            )
 
             if (
                 fallback_process.returncode == 0
                 and fallback_stdout.strip()
             ):
+                return fallback_stdout
 
-                if scan_type == "udp":
-                    note = (
-                        "True UDP scanning requires raw socket privileges "
-                        "which are unavailable on this server. "
-                        "TCP Connect scanning was used as a fallback."
-                    )
-
-                elif scan_type == "syn":
-                    note = (
-                        "SYN scanning requires raw socket privileges "
-                        "which are unavailable on this server. "
-                        "TCP Connect scanning was used as a fallback."
-                    )
-
-                elif scan_type in [
-                    "os",
-                    "os_scan",
-                    "os_detection"
-                ]:
-                    note = (
-                        "OS detection requires raw socket privileges "
-                        "which are unavailable on this server. "
-                        "Service/version detection was used as a fallback."
-                    )
-
-                elif scan_type in [
-                    "aggressive",
-                    "aggressive_scan"
-                ]:
-                    note = (
-                        "Aggressive scanning requires privileged "
-                        "network operations which are unavailable "
-                        "on this server. "
-                        "Service/version detection was used as a fallback."
-                    )
-
-                else:
-                    note = (
-                        "The requested scan required privileged "
-                        "network operations. "
-                        "TCP Connect scanning was used as a fallback."
-                    )
-
-                return {
-                    "xml": fallback_stdout,
-                    "scan_note": note,
-                    "fallback_used": True
-                }
-
-            fallback_error = (
+            raise RuntimeError(
                 fallback_stderr.strip()
-                or fallback_stdout.strip()
-                or "Fallback Nmap scan failed."
+                or "Nmap fallback scan failed."
             )
-
-            raise RuntimeError(fallback_error)
 
         raise RuntimeError(
             error_message or "Nmap scan failed."
         )
 
     except subprocess.TimeoutExpired:
+
         raise RuntimeError(
             "Nmap scan timed out after 600 seconds."
         )
@@ -378,42 +322,27 @@ def run_nmap(target, scan_type="tcp"):
 
 def parse_nmap_xml(xml_data):
     """
-    Parse Nmap XML output.
+    Parse Nmap XML.
+
+    IMPORTANT:
+    Returns a LIST of port dictionaries.
+    This is the format expected by the existing
+    recommendations/database/report code.
     """
 
     results = []
 
-    os_detection = None
-
     try:
+
         root = ET.fromstring(xml_data)
 
     except ET.ParseError as e:
-        raise RuntimeError(
-            f"Invalid Nmap XML output: {str(e)}"
-        )
 
-    # -----------------------------------------
-    # HOST INFORMATION
-    # -----------------------------------------
+        raise RuntimeError(
+            f"Invalid Nmap XML: {str(e)}"
+        )
 
     for host in root.findall("host"):
-
-        # OS Detection
-        osmatch = host.find(
-            "./os/osmatch"
-        )
-
-        if osmatch is not None:
-
-            os_name = osmatch.get("name")
-
-            if os_name:
-                os_detection = os_name
-
-        # -----------------------------------------
-        # PORTS
-        # -----------------------------------------
 
         ports = host.find("ports")
 
@@ -429,11 +358,8 @@ def parse_nmap_xml(xml_data):
 
             state_value = state.get("state")
 
-            # Include open / open|filtered
-            if state_value not in [
-                "open",
-                "open|filtered"
-            ]:
+            # Only return open ports
+            if state_value != "open":
                 continue
 
             service = port.find("service")
@@ -457,61 +383,56 @@ def parse_nmap_xml(xml_data):
                 )
 
             results.append({
+
                 "port": int(
                     port.get("portid", 0)
                 ),
+
                 "protocol": (
                     port.get("protocol") or ""
                 ),
+
                 "state": state_value,
+
                 "service": service_name,
+
                 "product": product,
+
                 "version": version
             })
 
-    return {
-        "ports": results,
-        "open_ports": results,
-        "total_ports": len(results),
-        "os_detection": os_detection
-    }
+    return results
 
 
 def scan_target(target, scan_type="tcp"):
     """
-    Scan a single target.
+    Scan one target.
+
+    Returns:
+        list[dict]
     """
 
-    scan_output = run_nmap(
+    xml_data = run_nmap(
         target,
         scan_type
     )
 
-    parsed = parse_nmap_xml(
-        scan_output["xml"]
+    results = parse_nmap_xml(
+        xml_data
     )
 
-    parsed["target"] = target
-    parsed["scan_type"] = scan_type
-
-    parsed["scan_note"] = scan_output.get(
-        "scan_note"
-    )
-
-    parsed["fallback_used"] = scan_output.get(
-        "fallback_used",
-        False
-    )
-
-    return parsed
+    return results
 
 
-def scan_multiple_targets(targets, scan_type="tcp"):
+def scan_multiple_targets(
+    targets,
+    scan_type="tcp"
+):
     """
     Scan multiple targets.
     """
 
-    results = []
+    all_results = []
 
     for target in targets:
 
@@ -522,25 +443,22 @@ def scan_multiple_targets(targets, scan_type="tcp"):
 
         try:
 
-            result = scan_target(
+            results = scan_target(
                 target,
                 scan_type
             )
 
-            results.append(result)
+            all_results.append({
+                "target": target,
+                "results": results
+            })
 
         except Exception as e:
 
-            results.append({
+            all_results.append({
                 "target": target,
-                "scan_type": scan_type,
-                "ports": [],
-                "open_ports": [],
-                "total_ports": 0,
-                "os_detection": None,
-                "scan_note": str(e),
-                "fallback_used": False,
+                "results": [],
                 "error": str(e)
             })
 
-    return results
+    return all_results
